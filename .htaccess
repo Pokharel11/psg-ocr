@@ -1,13 +1,22 @@
 # P.S.G. & Associates - OCR Document Generator (ocr.psgassociates.com.np)
 
 Options -Indexes
-DirectoryIndex index.html
+DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # Force HTTPS on this host
   RewriteCond %{HTTPS} off
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# The UI is served only through index.php (after login); block direct access.
+<FilesMatch "^(index\.html|config\.php|config\.sample\.php)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
 <IfModule mod_expires.c>
@@ -15,11 +24,4 @@ DirectoryIndex index.html
   ExpiresByType text/css            "access plus 7 days"
   ExpiresByType application/javascript "access plus 7 days"
   ExpiresByType image/svg+xml       "access plus 30 days"
-  ExpiresByType image/png           "access plus 30 days"
-  ExpiresByType image/x-icon        "access plus 30 days"
-</IfModule>
-
-<IfModule mod_headers.c>
-  Header set X-Content-Type-Options "nosniff"
-  Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

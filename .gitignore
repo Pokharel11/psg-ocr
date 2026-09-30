@@ -1,3 +1,6 @@
+# Never commit real DB credentials
+config.php
+
 # OS / editor
 .DS_Store
 Thumbs.db
