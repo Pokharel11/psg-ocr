@@ -1,0 +1,8 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# local dev only
+_dev*
+.ftp-deploy-sync-state.json

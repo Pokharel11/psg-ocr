@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PSG">
+  <rect width="64" height="64" rx="13" fill="#2f2a76"/>
+  <text x="32" y="34" text-anchor="middle" dominant-baseline="central"
+        font-family="Poppins, 'Segoe UI', Arial, sans-serif" font-weight="800"
+        font-size="25" letter-spacing="0.5" fill="#f4f0e7">PSG</text>
+</svg>

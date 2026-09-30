@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Document Generator · P.S.G. &amp; Associates</title>
+<meta name="description" content="Generate Nepali company-compliance documents (AGM/SGM minutes, Section 50/51/92, Beneficiary Owner detail) for the Office of the Company Registrar. By P.S.G. & Associates, Chartered Accountants.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://ocr.psgassociates.com.np/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,500..700&family=Hanken+Grotesk:wght@300..600&family=Spline+Sans+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14122a; --ink-2:#1a1830; --indigo:#2f2a76; --indigo-2:#3b3690;
+    --slate:#565b6e; --brass:#b89455; --brass-deep:#97742f; --gold:#d8b877;
+    --cream:#eef1f6; --paper:#ffffff; --paper-2:#f5f6f9;
+    --line:rgba(24,28,56,.12); --line-soft:rgba(24,28,56,.07);
+    --on-dark:#eef0f6; --on-dark-mut:#a7abc2;
+    --success:#2a7d54; --red-soft:#b23b3b;
+    --display:"Plus Jakarta Sans",system-ui,sans-serif;
+    --body:"Hanken Grotesk",system-ui,sans-serif;
+    --mono:"Spline Sans Mono",ui-monospace,monospace;
+    --nep:"Noto Sans Devanagari",sans-serif;
+    --radius:8px; --radius-lg:18px;
+    --shadow-sm:0 1px 2px rgba(20,24,55,.04), 0 4px 16px rgba(20,24,55,.05);
+    --shadow-md:0 8px 20px rgba(20,24,55,.07), 0 22px 48px rgba(20,24,55,.10);
+    --shadow-lg:0 16px 40px rgba(20,24,55,.12), 0 40px 80px rgba(20,24,55,.12);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ font-family:var(--body); background:var(--paper-2); color:var(--ink); line-height:1.6; min-height:100vh; -webkit-font-smoothing:antialiased; }
+  :lang(ne), .nep, .np{ font-family:var(--nep); }
+  input, select, textarea, button{ font-family:inherit; }
+
+  /* ── HEADER ── */
+  header.appbar{
+    background:var(--paper); border-bottom:1px solid var(--line);
+    padding:16px clamp(18px,4vw,44px); display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100; gap:16px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:.34em; }
+  .brand .logo-word{
+    font-family:var(--display); font-weight:800; color:var(--indigo);
+    font-size:clamp(1.02rem,1.6vw,1.3rem); letter-spacing:-.02em; line-height:1; display:flex; align-items:center;
+  }
+  .brand .amp{ display:inline-grid; place-items:center; background:var(--indigo); color:#fff; font-weight:700;
+    padding:.06em .4em .12em; margin:0 .24em; line-height:1; clip-path:polygon(0 0,100% 9%,100% 91%,0 100%); }
+  .brand .logo-sub{ display:flex; align-items:center; gap:.5em; font-family:var(--mono); font-size:.52rem;
+    letter-spacing:.32em; text-transform:uppercase; color:var(--brass-deep); }
+  .brand .logo-sub::before{ content:""; height:1px; width:16px; background:var(--brass); opacity:.7; }
+  .appbar-right{ display:flex; align-items:center; gap:14px; }
+  .app-tag{ font-family:var(--mono); font-size:.66rem; letter-spacing:.22em; text-transform:uppercase; color:var(--slate); }
+  .app-badge{ background:var(--indigo); color:var(--gold); font-family:var(--mono); font-size:.64rem; font-weight:500;
+    padding:6px 12px; border-radius:100px; letter-spacing:.06em; white-space:nowrap; }
+
+  /* ── LAYOUT ── */
+  .layout{ display:grid; grid-template-columns:288px 1fr; min-height:calc(100vh - 65px); align-items:start; }
+
+  /* ── SIDEBAR ── */
+  .sidebar{ padding:28px 18px; position:sticky; top:65px; }
+  .sidebar-label{ font-family:var(--mono); font-size:.6rem; letter-spacing:.2em; color:var(--slate); padding:6px 16px 10px; text-transform:uppercase; }
+  .steps{ display:flex; flex-direction:column; gap:4px; }
+  .sidebar-step{ display:flex; align-items:center; gap:13px; padding:12px 16px; cursor:pointer; border-radius:12px;
+    transition:background .2s var(--ease), color .2s; font-size:.92rem; color:var(--slate); font-weight:500; border:1px solid transparent; }
+  .sidebar-step:hover{ background:var(--cream); color:var(--ink); }
+  .sidebar-step.active{ background:var(--paper); border-color:var(--line); box-shadow:var(--shadow-sm); color:var(--indigo); }
+  .step-num{ width:26px; height:26px; border-radius:50%; background:var(--cream); color:var(--slate);
+    font-family:var(--mono); font-size:.74rem; font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:.2s; }
+  .sidebar-step.active .step-num{ background:var(--indigo); color:var(--gold); }
+  .sidebar-step.done .step-num{ background:var(--success); color:#fff; }
+  .sidebar-note{ margin:22px 12px 0; padding:14px 16px; background:var(--cream); border-radius:12px; border:1px solid var(--line-soft); }
+  .sidebar-note b{ font-family:var(--display); font-size:.8rem; color:var(--ink); display:block; margin-bottom:3px; }
+  .sidebar-note span{ font-size:.76rem; color:var(--slate); line-height:1.5; }
+
+  /* ── MAIN ── */
+  main{ padding:clamp(28px,4vw,52px) clamp(20px,5vw,72px); max-width:940px; }
+  .step-panel{ display:none; }
+  .step-panel.active{ display:block; animation:fade .3s var(--ease); }
+  @keyframes fade{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+  .eyebrow{ font-family:var(--mono); font-size:.68rem; letter-spacing:.24em; text-transform:uppercase; color:var(--brass-deep);
+    display:inline-flex; align-items:center; gap:.7em; }
+  .eyebrow::before{ content:""; width:24px; height:1px; background:var(--brass); }
+  .panel-title{ font-family:var(--display); font-size:clamp(1.7rem,3.4vw,2.4rem); font-weight:700; color:var(--ink);
+    letter-spacing:-.03em; margin:.7rem 0 .3rem; }
+  .panel-subtitle{ font-family:var(--nep); font-size:.95rem; color:var(--slate); margin-bottom:32px; }
+
+  /* ── FORM ── */
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+  .field-grid.single{ grid-template-columns:1fr; }
+  .field-grid.triple{ grid-template-columns:1fr 1fr 1fr; }
+  .field-group{ display:flex; flex-direction:column; gap:7px; }
+  .field-group.full{ grid-column:1 / -1; }
+  label{ font-family:var(--mono); font-size:.68rem; font-weight:500; color:var(--ink-2); letter-spacing:.1em; text-transform:uppercase; }
+  label .hint{ font-family:var(--body); font-size:.76rem; color:var(--slate); font-weight:400; text-transform:none; letter-spacing:0; display:block; margin-top:3px; }
+  label .hint.nep{ font-family:var(--nep); }
+  label .required{ color:var(--red-soft); margin-left:2px; }
+  input, select, textarea{ border:1.5px solid var(--line); border-radius:var(--radius); padding:11px 14px; font-size:.94rem;
+    color:var(--ink); background:var(--paper); transition:border-color .18s, box-shadow .18s; outline:none; width:100%; }
+  input::placeholder{ color:#b7bac6; }
+  input:focus, select:focus, textarea:focus{ border-color:var(--indigo); box-shadow:0 0 0 3px rgba(47,42,118,.12); }
+  input.nepali-date, input.np{ font-family:var(--nep); }
+  .date-row{ display:flex; gap:8px; align-items:flex-end; }
+  .date-row input{ flex:1; }
+  .date-auto-btn{ background:var(--indigo); color:var(--on-dark); border:none; border-radius:var(--radius); padding:11px 15px;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:background .18s; flex-shrink:0; }
+  .date-auto-btn:hover{ background:var(--indigo-2); }
+
+  /* ── SECTION CARD ── */
+  .section-card{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); padding:clamp(20px,3vw,30px);
+    margin-bottom:22px; box-shadow:var(--shadow-sm); }
+  .section-card-title{ font-family:var(--display); font-size:1.06rem; font-weight:700; color:var(--ink); letter-spacing:-.01em;
+    margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; gap:12px; }
+  .section-card-title .icon{ width:34px; height:34px; background:var(--cream); border:1px solid var(--line); border-radius:9px;
+    display:flex; align-items:center; justify-content:center; font-size:1rem; color:var(--indigo); flex-shrink:0; }
+
+  .toggle-row{ display:flex; align-items:center; gap:13px; margin-bottom:22px; padding:15px 18px; background:var(--cream);
+    border-radius:12px; cursor:pointer; user-select:none; border:1px solid var(--line-soft); }
+  .toggle-row label{ font-family:var(--body); text-transform:none; font-size:.9rem; cursor:pointer; letter-spacing:0; color:var(--ink); font-weight:500; }
+  .toggle{ width:40px; height:22px; background:var(--line); border-radius:11px; position:relative; transition:background .2s; flex-shrink:0; }
+  .toggle::after{ content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .toggle.on{ background:var(--indigo); }
+  .toggle.on::after{ left:21px; }
+  .auditor-section{ display:none; }
+  .auditor-section.visible{ display:block; }
+
+  /* ── DIRECTOR BLOCK ── */
+  .director-block{ background:var(--paper-2); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:14px; position:relative; }
+  .director-block-title{ font-family:var(--mono); font-size:.7rem; font-weight:500; color:var(--brass-deep); letter-spacing:.12em; text-transform:uppercase; margin-bottom:16px; }
+  .remove-btn{ position:absolute; top:14px; right:16px; background:none; border:none; color:var(--slate); cursor:pointer; font-size:1.1rem; line-height:1; }
+  .remove-btn:hover{ color:var(--red-soft); }
+  .add-director-btn{ background:none; border:1.5px dashed var(--line); border-radius:12px; padding:15px; color:var(--indigo);
+    font-family:var(--mono); font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; width:100%;
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:all .18s; }
+  .add-director-btn:hover{ background:var(--cream); border-color:var(--indigo); }
+
+  /* ── NAV BUTTONS ── */
+  .nav-row{ display:flex; justify-content:space-between; align-items:center; margin-top:34px; padding-top:24px; border-top:1px solid var(--line); }
+  .btn{ padding:13px 26px; border-radius:var(--radius); font-family:var(--mono); font-size:.78rem; font-weight:500; letter-spacing:.1em;
+    text-transform:uppercase; cursor:pointer; transition:all .35s var(--ease); border:none; display:inline-flex; align-items:center; gap:9px;
+    position:relative; overflow:hidden; isolation:isolate; }
+  .btn .arr{ transition:transform .35s var(--ease); }
+  .btn:hover .arr{ transform:translateX(3px); }
+  .btn-outline{ background:var(--paper); border:1.5px solid var(--line); color:var(--ink); }
+  .btn-outline:hover{ border-color:var(--ink); }
+  .btn-primary{ background:var(--indigo); color:var(--on-dark); }
+  .btn-primary::after{ content:""; position:absolute; inset:0; z-index:-1; background:var(--brass); transform:translateY(102%); transition:transform .45s var(--ease); }
+  .btn-primary:hover{ color:var(--ink); }
+  .btn-primary:hover::after{ transform:translateY(0); }
+  .btn-gold{ background:var(--brass); color:var(--ink); }
+  .btn-gold:hover{ background:var(--brass-deep); color:#fff; }
+  .btn[disabled]{ opacity:.5; pointer-events:none; }
+
+  /* ── REVIEW ── */
+  .review-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:26px; }
+  .review-item{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:15px 18px; }
+  .review-item-label{ font-family:var(--mono); font-size:.62rem; color:var(--slate); letter-spacing:.12em; text-transform:uppercase; margin-bottom:5px; }
+  .review-item-value{ font-size:.95rem; color:var(--ink); font-family:var(--nep); font-weight:500; word-break:break-word; }
+  .doc-checklist{ display:flex; flex-direction:column; gap:8px; margin:20px 0; }
+  .doc-checklist .dc-head{ font-family:var(--mono); font-size:.64rem; color:var(--slate); letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px; }
+  .doc-check-item{ display:flex; align-items:center; gap:11px; font-size:.9rem; color:var(--ink); padding:11px 16px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px; }
+  .doc-check-item .ck{ color:var(--success); font-weight:700; }
+
+  /* ── GENERATE ── */
+  .generate-panel{ text-align:center; padding:clamp(28px,4vw,44px); background:var(--paper); border-radius:var(--radius-lg);
+    border:1px solid var(--line); box-shadow:var(--shadow-md); }
+  .generate-icon{ width:64px; height:64px; margin:0 auto 18px; border-radius:16px; background:var(--indigo); color:var(--gold);
+    display:flex; align-items:center; justify-content:center; font-size:1.9rem; }
+  .generate-title{ font-family:var(--display); font-size:1.5rem; font-weight:700; margin-bottom:8px; letter-spacing:-.02em; }
+  .generate-sub{ color:var(--slate); font-size:.9rem; margin-bottom:26px; }
+  .generate-btns{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .pdf-note{ font-size:.8rem; color:var(--slate); margin-top:18px; }
+  .pdf-note b{ color:var(--ink); font-weight:600; }
+  .progress-bar-wrap{ margin:22px auto 0; max-width:460px; display:none; }
+  .progress-bar-wrap.visible{ display:block; }
+  .progress-bar-bg{ background:var(--cream); border-radius:10px; height:8px; overflow:hidden; }
+  .progress-bar{ background:linear-gradient(90deg,var(--indigo),var(--brass)); height:100%; border-radius:10px; transition:width .4s ease; width:0%; }
+  .progress-label{ font-size:.78rem; color:var(--slate); margin-top:9px; }
+  .result-downloads{ display:none; flex-direction:column; gap:10px; margin-top:22px; max-width:520px; margin-inline:auto; }
+  .result-downloads.visible{ display:flex; }
+  .download-btn{ display:flex; align-items:center; gap:14px; padding:16px 20px; border-radius:12px; border:1.5px solid var(--indigo);
+    cursor:pointer; text-decoration:none; transition:all .18s; background:var(--paper); text-align:left; color:var(--ink); }
+  .download-btn:hover{ background:var(--cream); }
+  .download-btn .dl-icon{ width:42px; height:42px; border-radius:10px; background:var(--indigo); color:var(--gold);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+  .download-btn .dl-main{ font-family:var(--display); font-weight:700; font-size:.95rem; }
+  .download-btn .dl-sub{ font-size:.76rem; color:var(--slate); font-family:var(--nep); }
+  .err-msg{ display:none; margin-top:16px; padding:12px 16px; border-radius:10px; background:#fbecec; color:var(--red-soft); font-size:.85rem; border:1px solid #f0cccc; }
+  .err-msg.visible{ display:block; }
+  .cal-tooltip{ font-size:.76rem; color:var(--success); margin-top:5px; font-family:var(--nep); }
+
+  /* ── MOBILE ── */
+  .m-steps{ display:none; }
+  @media (max-width:880px){
+    .layout{ grid-template-columns:1fr; }
+    .sidebar{ display:none; }
+    main{ padding:22px 18px 48px; }
+    .field-grid, .field-grid.triple{ grid-template-columns:1fr; }
+    .review-grid{ grid-template-columns:1fr; }
+    .m-steps{ display:flex; gap:6px; padding:14px 18px 0; flex-wrap:wrap; }
+    .m-steps .ms{ font-family:var(--mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; color:var(--slate);
+      padding:6px 11px; border-radius:100px; background:var(--cream); border:1px solid var(--line-soft); }
+    .m-steps .ms.active{ background:var(--indigo); color:var(--gold); border-color:var(--indigo); }
+    .app-tag{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <a href="/" class="brand" aria-label="P.S.G. & Associates, Chartered Accountants" style="text-decoration:none;">
+    <span class="logo-word">P.S.G.<span class="amp">&amp;</span>Associates</span>
+    <span class="logo-sub">Chartered Accountants</span>
+  </a>
+  <div class="appbar-right">
+    <span class="app-tag">OCR Document Generator</span>
+    <span class="app-badge">कम्पनी ऐन २०६३</span>
+  </div>
+</header>
+
+<div class="m-steps" id="m-steps">
+  <span class="ms active">1 · Company</span><span class="ms">2 · Directors</span><span class="ms">3 · Dates</span><span class="ms">4 · Audit</span><span class="ms">5 · Generate</span>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">Setup</div>
+    <div class="steps">
+      <div class="sidebar-step active" onclick="goTo(0)" id="nav-0"><div class="step-num">1</div> Company Info</div>
+      <div class="sidebar-step" onclick="goTo(1)" id="nav-1"><div class="step-num">2</div> Board of Directors</div>
+      <div class="sidebar-step" onclick="goTo(2)" id="nav-2"><div class="step-num">3</div> Dates &amp; Calendar</div>
+      <div class="sidebar-step" onclick="goTo(3)" id="nav-3"><div class="step-num">4</div> Audit &amp; Capital</div>
+    </div>
+    <div class="sidebar-label" style="margin-top:14px;">Generate</div>
+    <div class="steps">
+      <div class="sidebar-step" onclick="goTo(4)" id="nav-4"><div class="step-num">5</div> Review &amp; Generate</div>
+    </div>
+    <div class="sidebar-note">
+      <b>Runs in your browser</b>
+      <span>Nothing is uploaded to a server. Documents are built on this device and downloaded directly.</span>
+    </div>
+  </nav>
+
+  <main>
+    <!-- STEP 0 -->
+    <div class="step-panel active" id="step-0">
+      <span class="eyebrow">Step 1 of 5</span>
+      <h2 class="panel-title">Company Information</h2>
+      <p class="panel-subtitle">कम्पनीको आधारभूत जानकारी</p>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Basic Details</div>
+        <div class="field-grid">
+          <div class="field-group full">
+            <label>Company Name <span class="required">*</span><span class="hint nep">In Nepali (e.g. सफारी एड्भाइजर प्रा.लि.)</span></label>
+            <input type="text" class="np" id="companyName" placeholder="सफारी एड्भाइजर प्रा.लि." />
+          </div>
+          <div class="field-group">
+            <label>Company Address <span class="required">*</span><span class="hint">In Nepali</span></label>
+            <input type="text" class="np" id="companyAddress" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
+          </div>
+          <div class="field-group">
+            <label>Registration Number <span class="required">*</span><span class="hint nep">दर्ता नं</span></label>
+            <input type="text" class="np" id="regNumber" placeholder="१२३४५६" />
+          </div>
+        </div>
+      </div>
+      <div class="nav-row"><div></div><button class="btn btn-primary" onclick="goTo(1)">Next: Board of Directors <span class="arr">→</span></button></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-panel" id="step-1">
+      <span class="eyebrow">Step 2 of 5</span>
+      <h2 class="panel-title">Board of Directors</h2>
+      <p class="panel-subtitle">संचालक समितिका सदस्यहरु</p>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">👤</span> Chairman (अध्यक्ष)</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Chairman Name <span class="required">*</span><span class="hint">Full name in Nepali</span></label>
+            <input type="text" class="np" id="chairmanName" placeholder="श्री राम शर्मा" />
+          </div>
+          <div class="field-group">
+            <label>Chairman Address <span class="required">*</span><span class="hint">In Nepali</span></label>
+            <input type="text" class="np" id="chairmanAddr" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
+          </div>
+        </div>
+      </div>
+      <div id="directors-container"></div>
+      <button class="add-director-btn" onclick="addDirector()"><span>+</span> Add Director (संचालक थप्नुहोस्)</button>
+      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(0)">← Back</button><button class="btn btn-primary" onclick="goTo(2)">Next: Dates <span class="arr">→</span></button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-panel" id="step-2">
+      <span class="eyebrow">Step 3 of 5</span>
+      <h2 class="panel-title">Dates &amp; Calendar</h2>
+      <p class="panel-subtitle">मितिहरु — नेपाली पात्रो</p>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📅</span> Nepali Calendar Dates</div>
+        <p class="np" style="font-size:.84rem;color:var(--slate);margin-bottom:20px;">सबै मिति नेपाली पात्रोमा लेख्नुहोस् — ढाँचा: २०८२/०९/२२</p>
+        <div class="toggle-row" onclick="toggleAuditor()">
+          <div class="toggle" id="auditorToggle"></div>
+          <label>Auditor Change Required? (लेखापरीक्षक परिवर्तन आवश्यक छ?)</label>
+        </div>
+        <div class="auditor-section" id="auditorDatesSection">
+          <div class="field-grid">
+            <div class="field-group">
+              <label>SGM Call BOD Date <span class="required">*</span><span class="hint nep">Auditor change BOD मिति — २०८२/०९/२२</span></label>
+              <div class="date-row"><input type="text" class="nepali-date" id="bodAuditorDate" placeholder="२०८२/१०/२०" /></div>
+            </div>
+            <div class="field-group">
+              <label>SGM Date <span class="required">*</span><span class="hint">Min 15 days after BOD date</span></label>
+              <div class="date-row"><input type="text" class="nepali-date" id="sgmDate" placeholder="२०८२/११/०८" /><button class="date-auto-btn" onclick="autoSGM()">Auto +15</button></div>
+              <div class="cal-tooltip" id="sgmHint"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field-grid triple">
+          <div class="field-group">
+            <label>BOD Meeting Date <span class="required">*</span><span class="hint">AGM Call — २०८२/०८/०१</span></label>
+            <input type="text" class="nepali-date" id="bodDate" placeholder="२०८२/०८/०१" />
+          </div>
+          <div class="field-group">
+            <label>AGM Date <span class="required">*</span><span class="hint">Min 21 days after BOD</span></label>
+            <div class="date-row"><input type="text" class="nepali-date" id="agmDate" placeholder="२०८२/०८/२९" /><button class="date-auto-btn" onclick="autoAGM()">Auto +21</button></div>
+            <div class="cal-tooltip" id="agmHint"></div>
+          </div>
+          <div class="field-group">
+            <label>Application Date <span class="required">*</span><span class="hint">After AGM date</span></label>
+            <input type="text" class="nepali-date" id="appDate" placeholder="२०८२/०९/२९" />
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📆</span> Fiscal Years</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Current Fiscal Year <span class="required">*</span><span class="hint">Format: २०८१/०८२</span></label>
+            <input type="text" class="nepali-date" id="fiscalYear" placeholder="२०८१/०८२" />
+          </div>
+          <div class="field-group">
+            <label>Next Fiscal Year <span class="required">*</span><span class="hint">Format: २०८२/०८३</span></label>
+            <input type="text" class="nepali-date" id="nextFiscalYear" placeholder="२०८२/०८३" />
+          </div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(1)">← Back</button><button class="btn btn-primary" onclick="goTo(3)">Next: Audit &amp; Capital <span class="arr">→</span></button></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-panel" id="step-3">
+      <span class="eyebrow">Step 4 of 5</span>
+      <h2 class="panel-title">Audit &amp; Capital</h2>
+      <p class="panel-subtitle">लेखापरीक्षण र पूँजी विवरण</p>
+      <div class="section-card" id="prevAuditorCard" style="display:none">
+        <div class="section-card-title"><span class="icon">🔄</span> Previous Auditor (SGM Change)</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Previous Audit Firm Name <span class="required">*</span></label><input type="text" class="np" id="prevAuditorFirm" placeholder="ए.बि.सी. एण्ड एसोसिएट्स" /></div>
+          <div class="field-group"><label>Previous Auditor Name <span class="required">*</span></label><input type="text" class="np" id="prevAuditorName" placeholder="श्री अशोक शर्मा" /></div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📋</span> Current Year Auditor</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Audit Firm Name <span class="required">*</span><span class="hint">This fiscal year</span></label><input type="text" class="np" id="curAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
+          <div class="field-group"><label>Auditor Name <span class="required">*</span></label><input type="text" class="np" id="auditorName" placeholder="श्री दिपक शर्मा" /></div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📋</span> Next Year Auditor</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Next Year Audit Firm <span class="required">*</span></label><input type="text" class="np" id="nextAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
+          <div class="field-group"><label>Next Year Auditor Name <span class="required">*</span></label><input type="text" class="np" id="nextAuditorName" placeholder="श्री दिपक शर्मा" /></div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">💰</span> Capital Details</div>
+        <div class="field-grid triple">
+          <div class="field-group"><label>No. of Authorized Shares <span class="required">*</span><span class="hint">Number only</span></label><input type="number" id="numShares" placeholder="25000" oninput="calcCapital()" /></div>
+          <div class="field-group"><label>Authorized Capital (रु.) <span class="required">*</span><span class="hint">Auto = shares × 100</span></label><input type="text" class="np" id="authCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Issued Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="issuedCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Paid Up Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="paidUpCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Amount Paid (रु.) <span class="required">*</span></label><input type="text" class="np" id="paidAmt" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Unpaid Capital<span class="hint nep">Auto: छैन if 0</span></label><input type="text" class="np" id="unpaidCapital" placeholder="छैन" /></div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(2)">← Back</button><button class="btn btn-primary" onclick="goTo(4)">Next: Review <span class="arr">→</span></button></div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-panel" id="step-4">
+      <span class="eyebrow">Step 5 of 5</span>
+      <h2 class="panel-title">Review &amp; Generate</h2>
+      <p class="panel-subtitle">समीक्षा र कागजात निर्माण</p>
+      <div id="reviewContent"></div>
+      <div class="generate-panel">
+        <div class="generate-icon">📄</div>
+        <div class="generate-title">Ready to Generate</div>
+        <div class="generate-sub" id="generateSubText">All documents will be prepared with your data.</div>
+        <div class="progress-bar-wrap" id="progressWrap">
+          <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="progress-label" id="progressLabel">Preparing…</div>
+        </div>
+        <div class="generate-btns" id="generateBtns">
+          <button class="btn btn-primary" onclick="generateDocs()">Generate Word Documents <span class="arr">↓</span></button>
+        </div>
+        <div class="result-downloads" id="resultDownloads"></div>
+        <div class="err-msg" id="errMsg"></div>
+        <p class="pdf-note">Need a PDF? Open the downloaded <b>.docx</b> in Microsoft Word or Google Docs and choose <b>Save as / Download as PDF</b>.</p>
+      </div>
+      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(3)">← Back</button><div></div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/docx.min.js"></script>
+<script src="assets/js/app.js?v=1"></script>
+</body>
+</html>
