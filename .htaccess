@@ -9,8 +9,8 @@ DirectoryIndex index.php
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 </IfModule>
 
-# The UI is served only through index.php (after login); block direct access.
-<FilesMatch "^(index\.html|config\.php|config\.sample\.php)$">
+# The UI (app.html) is served only through index.php (after login); block direct access.
+<FilesMatch "^(app\.html|config\.php|config\.sample\.php)$">
   Require all denied
 </FilesMatch>
 
