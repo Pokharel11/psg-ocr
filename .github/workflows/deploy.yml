@@ -22,9 +22,12 @@ jobs:
           # Document root of the ocr.psgassociates.com.np subdomain.
           # cPanel's default when you create subdomain "ocr" is public_html/ocr.
           server-dir: public_html/ocr/
-          # Don't upload repo/CI files to the web root
+          # Don't upload repo/CI files to the web root.
+          # .htaccess is excluded so cPanel "Directory Privacy" (Basic Auth) rules
+          # written into the live .htaccess are never overwritten by a deploy.
           exclude: |
             **/.git*
             **/.git*/**
             **/.github/**
             README.md
+            .htaccess
