@@ -1,0 +1,135 @@
+# Anonymized reference text from Audit_Letter_Reference.docx (spec section 3).
+# Used ONLY by the parity test. Names here (PSG Private Limited, Sujan Timalsina,
+# Gaurav Pokharel) are the spec%27s anonymized placeholders, mandated by test 12.1.
+
+
+
+
+Date: Ashad 25th, 2083
+Mr. Gaurav Pokharel, 
+P.S.G. & Associates,
+Chartered Accountant
+Kathmandu, Nepal
+
+Sub: Appointment Letter
+
+Dear Mr. Gaurav Pokharel,
+
+We are happy to appoint you as auditor of our company, PSG Private Limited, to conduct Statutory Audit for the FY 2082/83. The remuneration for the above job shall be Rs. 140,000.00 (Rs. One Lakh Forty Thousand Only) excluding VAT. Applicable tax at source shall be deducted as prescribed by Income Tax Act 2058. We believe you will execute the job as required by the law of land.
+
+
+Yours truly,
+
+
+
+
+_____________
+Sujan Timalsina
+Chairperson
+PSG Private Limited
+
+
+
+
+
+26th Ashad, 2083
+The Shareholder
+PSG Private Limited
+Kathmandu, Nepal
+Sub: Statutory Audit Engagement Letter for FY 2082/83
+
+Dear Sir,
+We have been appointed to audit the Statement of Financial Position of PSG Private Limited of FY 2082/83 and Statement of Income, Statement of Changes in Equity and Statement of Cash Flows for the year ending on 32nd Ashad 2083 as per your appointment letter dated 25th Ashad 2083. We are pleased to confirm our acceptance and our understanding of this engagement by means of this letter. Our audit will be made with the objective of our expressing an opinion on the financial statements.
+Our audit will be carried out in accordance with the Company Act, 2063 and Nepal Standards on Auditing (NSA). Those NSAs require that we plan and perform the audit to obtain reasonable assurance about whether the financial statements are free of material misstatements. An audit includes examining, on a test basis, evidence supporting the amounts and disclosures in the financial statements. An audit also includes assessing the accounting principles used and significant estimates made by management, as well as evaluating the overall financial statement presentation.
+Because of the test nature and other inherent limitations of an audit, together with the inherent limitations of any accounting and internal control system, there is unavoidable risk that even some material misstatements may remain undiscovered.
+In addition to our report on the financial statements, we expect to provide you with a separate letter concerning any material weaknesses in accounting and internal control systems, which come into our notice.
+We remind you that the responsibility for preparation of financial statements including adequate disclosure in accordance with Nepal Financial Reporting Standards (NFRS) is that of the management of the PSG Private Limited This includes the maintenance of adequate accounting records and internal controls, the selection and application of accounting policies, and the safeguarding of the assets of the company. As part of our audit process, we will request from management written confirmation concerning representations made to us in connection with the audit. 
+We look forward to full cooperation from your staff, and we trust that they will make available to us whatever records, documentation and other information requested in connection with our audit. 
+Our fees for statutory audit exclusive of Value Added Tax, will be NRs 140,000.
+Please sign and return the attached copy of this letter to indicate that it is in accordance with your understanding of the arrangements for our audit of the Financial Statements. 
+
+Yours Faithfully,
+
+
+
+
+CA Gaurav Pokharel
+Partner
+
+
+Acknowledged on behalf of 
+PSG Private Limited
+
+
+
+
+Sujan Timalsina
+Date: 26th Ashad 2083
+
+
+
+
+
+
+
+
+
+
+
+Date: 13th Ashoj 2083
+To,
+CA Gaurav Pokharel
+M/s P.S.G. & Associates,
+Chartered Accountants
+Kathmandu, Nepal
+
+Dear Sir,
+This representation letter is provided in connection with your audit of the Financial Statements of PSG Private Limited for the period ended on 16th July 2026 for the purpose of expressing an opinion as to whether the financial statements present fairly, in all material respects, the financial position of the company as at 16th July 2026 and results of operations, statement of changes in equity, its statement of cash flows, accounting policy and notes to the account for the year then ended in accordance with Nepal Financial Reporting Standards (NFRS) and comply with Company Act 2063 (1st amendment 2074) and other applicable acts. We appreciate that all the information you require to form an opinion on the financial statements may not be available from an examination of the accounting records and other documents, and that you have obtained representations from the company’s directors and management. The directors acknowledge full responsibility for the fair preparation of the financial statements in accordance with the Nepal Financial Reporting Standards (NFRS) and comply with Company Act 2063 (1st amendment 2074) and other applicable Acts. We further acknowledge our responsibility for the design and implementation of internal control to prevent and detect fraud. We confirm, to the best of our knowledge and belief the following representations:
+
+Liabilities, Provisions and Commitments
+We have recorded or disclosed, as appropriate, all liabilities, both actual and contingent, including all guarantees we have given to third parties.
+Full impairment loss has been made in the financial statements for all material losses expected to arise from legal action, third party claims and off-statement of financial position contracts.
+Except as indicated in the financial statements, none of the liabilities, including those secured by reservation of title, were at the statement of financial position’s date, secured on any assets of the company.
+All commitment to loans and advances is disclosed in financial statement.
+All commitments to buy or sell securities or businesses, bonus or profit-sharing arrangements, losses arising from sale and purchase commitments and arrangements and options to buy back assets previously sold have been properly recorded and where appropriate, adequately disclosed in the financial statements.
+
+
+
+
+Assets
+The company has satisfactory title to all the assets, and all assets disposed off or belonging to third parties have been correctly reflected in the financial statements. 
+Unless where specifically disclosed in the financial statements, the assets were owned by the company free of any charge, encumbrance or lien.
+We have no plans to abandon lines of products/business or other plans or intentions that will result in any excess or obsolete inventory/financial assets, and no inventory/financial assets is stated at an amount in excess of its fair value.
+All income which arose to the date of the statement of financial position has been brought into the financial statements in accordance with the company's accounting policies.
+There are no formal or informal compensating balance arrangements with any of our cash and investment accounts. Except as disclosed in the financial statements, we have no other lines of credit arrangements.
+Prepayments included in the statement of financial position are deferred to be matched against income which can with reasonable certainty be expected to accrue after the statement of financial position date.
+All the bonus shares/ dividend who’s right to receive has been established has been booked in the financial statements.
+
+OTHER MATTERS
+We have made available to you, which we are aware that is relevant to the preparation of the financial statements, such as records, documentation and other matters; Additional information that you have requested from us for the purpose of the audit; Unrestricted access to persons within the entity from whom you determined it necessary to obtain audit evidence and all minutes of shareholders’ and directors’ meetings. 
+We confirm the completeness of the information provided in regard to the identification of, and balances and transactions with, related parties. Amounts charged/credited to the directors’ and shareholders accounts are confirmed. All transactions with related parties including remuneration and arrangements, transactions, or agreements to provide credit facilities to the directors and officers of the company or guarantees and securities provided on their behalf have been fully disclosed in the financial statements.
+There have been no irregularities involving management or employees who have a significant role in internal control or that could have a material effect on the financial statements. Nor have there been any allegations of fraud or suspected fraud, affecting the company’s financial statements communicated by employees, former employees, analysts, regulators, or others. The financial statements are free of material misstatements, including omissions.
+The company has complied with all aspects of contractual agreements that could have a material effect on the financial statements in the event of non-compliance. We confirm that the company has fully complied with all the statutory and legal requirements that could have a material effect on the financial statements in the event of non-compliance including payment of all applicable taxes, duties and other statutory obligations.
+There have been no subsequent events since the Statement of Financial Position’s date which necessitate revision of the amounts included in the financial statements or inclusion of additional disclosure. Should any material events occur, which may necessitate the revision of the amounts or inclusion of further disclosure, we shall advise you accordingly.
+There are no plans or intentions that may materially alter the carrying value or the classification of assets and liabilities reflected in the financial statements.
+We have reviewed all the adjustments and journal entries proposed arising out of the audit and confirm our acceptance thereof.
+The management declares that the management has not issued any loans to the directors, employees, promoters or their close relatives or related parties except allowed by the law.
+The declaration from the directors and senior management personnel as required by Company Act 2063 (1st amendment 2074) has been duly obtained and reported.
+We believe that the going concern basis is appropriate in preparing the financial statements for the year ended and the company has necessary funds to enable it to meet its liabilities as they fall due, for at least 12 months from the date of the above financial statements are approved by the board for issue.
+That the company has not violated any provisions regarding deduction of tax at source as prescribed by Income tax act, 2058.
+Personal expenses and expenses not related to the business are not charged to income other than specified in tax computation sheet. The staffs and others are not provided with interest free or subsidized personal advances and other benefits chargeable as per Income Tax Act, 2058 other than specified in salary chart and tax computation sheet. The quarter and vehicle facility provided to staffs with are included in salary chart. Any type of Loan, Guarantee and security has not been provided to the Company’s Board of Director or his/her family or corporate Body where he/she is a managing agents or shareholders.
+To the best of our knowledge and belief, no events have occurred after the statement of financial position date and through the date of this letter that would require adjustment to or disclosure in the aforesaid financial statements.
+
+Yours faithfully,
+
+
+
+
+
+Sujan Timalsina
+Chairperson
+PSG Private Limited
+
+
+
+

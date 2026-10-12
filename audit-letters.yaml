@@ -1,0 +1,508 @@
+# P.S.G. & Associates - Audit letter wording.
+#
+# This file holds ALL entity-type and framework wording and the 24 Management
+# Representation Letter (MRL) paragraphs, so a partner can edit the letters
+# WITHOUT touching code. Letter prose uses {placeholders} that the generator
+# fills in (dates, fee, vocabulary). Computed placeholders are documented in
+# assets/js/audit-letters-core.js.
+#
+# verified: false  ->  every row below is still draft. The generator works but
+# shows a "vocabulary not yet verified" banner to staff until a partner reviews
+# and sets this to true. The four entity columns are drawn from the anonymized
+# reference (Audit_Letter_Reference.docx); no real client data is stored here.
+
+meta:
+  verified: false
+  reference: "Audit_Letter_Reference.docx (anonymized)"
+  # Wording corrections applied to the reference. Each is a fix the partner may reject.
+  corrections:
+    - '1. Letter 1 address "Chartered Accountant" -> "Chartered Accountants"'
+    - '2. Letter 2 "...Limited This includes" -> add the missing full stop'
+    - '3. Letter 1 "law of land" -> "law of the land"'
+    - '4. "Company Act, 2063" / "Company Act 2063" -> "Companies Act, 2063"'
+    - '5. "Income Tax Act 2058" / "Income tax act, 2058" -> "Income Tax Act, 2058"'
+    - '6. Letter 2 "Yours Faithfully" -> "Yours faithfully"'
+    - '7. MRL "disposed off" -> "disposed of"'
+    - '8. MRL "who''s right to receive" -> "whose right to receive"'
+    - '9. MRL "staffs" -> "staff"'
+    - '10. "Dear Sir" -> "Dear Sir/Madam"'
+    - '11. Letter 2 "The Shareholder" -> "The Shareholders"'
+    - '12. BS dates standardised to "25th Ashad, 2083"; AD dates "16th July 2026"'
+    - '13. NFRS / NFRS for SMEs: "Statement of Income" -> "Statement of Profit or Loss and Other Comprehensive Income"'
+    - '14. Letter 2 "management of the {entity}" -> "management of {entity}" (drop stray "the")'
+    - '15. MRL "...provided to staffs with are included" -> "...provided to staff are included" (drop stray "with")'
+    - '16. MRL heading "OTHER MATTERS" -> "Other Matters"'
+
+# ---- Audit partners (mirror of the website repo _data/team; keep in sync) ----
+# `name` is without the "CA " prefix (the letters add it). `title` (Mr./Ms.) is a
+# default only and should be confirmed per letter in the form.
+partners:
+  - name: Gaurav Pokharel
+    title: "Mr."
+    designation: Partner
+  - name: Sujan Timalsina
+    title: "Mr."
+    designation: Partner
+
+# ---- Entity-type vocabulary (section 3) ----
+# Keys are the dropdown values. Every generic reference to the client uses these;
+# "company" is never hard-coded.
+entities:
+  Company:
+    noun: company
+    our_noun: company
+    default_designation: Chairperson
+    engagement_addressee: The Shareholders
+    owners: directors and shareholders
+    owners_short: directors
+    governance_body: board of directors
+    representation_givers: directors and management
+    representation_givers_short: directors
+    statute: "Companies Act, 2063"
+    statute_with_amendment: "Companies Act, 2063 (as amended)"
+    equity_statement: Statement of Changes in Equity
+  Partnership Firm:
+    noun: firm
+    our_noun: firm
+    default_designation: Managing Partner
+    engagement_addressee: The Partners
+    owners: partners
+    owners_short: partners
+    governance_body: partners
+    representation_givers: partners and management
+    representation_givers_short: partners
+    statute: "Partnership Act, 2020"
+    statute_with_amendment: "Partnership Act, 2020 (as amended)"
+    equity_statement: Statement of Changes in Partners' Capital
+  Proprietorship Firm:
+    noun: firm
+    our_noun: firm
+    default_designation: Proprietor
+    engagement_addressee: The Proprietor
+    owners: proprietor
+    owners_short: proprietor
+    governance_body: proprietor
+    representation_givers: proprietor and management
+    representation_givers_short: proprietor
+    statute: "Private Firm Registration Act, 2014"
+    statute_with_amendment: "Private Firm Registration Act, 2014 (as amended)"
+    equity_statement: Statement of Changes in Proprietor's Capital
+  NPO:
+    noun: entity
+    our_noun: entity
+    default_designation: Chairperson
+    engagement_addressee: The Executive Committee
+    owners: executive committee members and general members
+    owners_short: executive committee members
+    governance_body: executive committee
+    representation_givers: executive committee and management
+    representation_givers_short: executive committee
+    statute: "Association Registration Act, 2034 (and Social Welfare Act, 2049 where applicable)"
+    statute_with_amendment: "Association Registration Act, 2034 (as amended)"
+    equity_statement: Statement of Changes in Net Assets (Funds)
+
+# ---- Framework vocabulary (section 4) ----
+# statements: the financial statements listed in the engagement letter. The first
+# entry is the "lead" statement; {equity_statement} is filled from the entity row.
+frameworks:
+  NFRS:
+    full: Nepal Financial Reporting Standards (NFRS)
+    statements:
+      - Statement of Financial Position
+      - Statement of Profit or Loss and Other Comprehensive Income
+      - "{equity_statement}"
+      - Statement of Cash Flows
+  NFRS for SMEs:
+    full: Nepal Financial Reporting Standard for Small and Medium-sized Entities (NFRS for SMEs)
+    statements:
+      - Statement of Financial Position
+      - Statement of Profit or Loss and Other Comprehensive Income
+      - "{equity_statement}"
+      - Statement of Cash Flows
+  NAS for MEs:
+    full: Nepal Accounting Standard for Micro Entities (NAS for MEs)
+    statements:
+      - Statement of Financial Position
+      - Statement of Profit or Loss
+      - "{equity_statement}"
+      - Statement of Cash Flows
+  NAS for NPOs:
+    full: Nepal Accounting Standard for Not-for-Profit Organizations (NAS for NPOs)
+    statements:
+      - Statement of Financial Position
+      - Statement of Income and Expenditure
+      - Statement of Changes in Net Assets (Funds)
+      - Statement of Cash Flows
+  Nepal GAAP:
+    full: Nepal Generally Accepted Accounting Principles (GAAP)
+    statements:
+      - Balance Sheet
+      - Profit and Loss Account
+      - "{equity_statement}"
+      - Cash Flow Statement
+
+# ---- Letter 1: Appointment Letter (client letterhead) ----
+appointment:
+  subject: Appointment Letter
+  body: >-
+    We are happy to appoint you as auditor of our {noun}, {entity_name}, to
+    conduct Statutory Audit for the {fy_label}. The remuneration for the above
+    job shall be Rs. {fee_figure} (Rs. {fee_words}) {vat_short}{per_year_suffix}.
+    Applicable tax at source shall be deducted as prescribed by Income Tax Act,
+    2058. We believe you will execute the job as required by the law of the land.
+  closing: Yours truly,
+
+# ---- Letter 2: Engagement Letter (firm letterhead) ----
+engagement:
+  subject: Statutory Audit Engagement Letter for {fy_label}
+  salutation: Dear Sir/Madam,
+  paragraphs:
+    - >-
+      We have been appointed to audit the {fs_lead} of {entity_name}{fy_of} and
+      {fs_rest} {period_clause} as per your appointment letter dated
+      {appointment_date_bs_short}. We are pleased to confirm our acceptance and
+      our understanding of this engagement by means of this letter. Our audit
+      will be made with the objective of our expressing an opinion on the
+      financial statements.
+    - >-
+      Our audit will be carried out in accordance with the {statute} and Nepal
+      Standards on Auditing (NSA). Those NSAs require that we plan and perform the
+      audit to obtain reasonable assurance about whether the financial statements
+      are free of material misstatements. An audit includes examining, on a test
+      basis, evidence supporting the amounts and disclosures in the financial
+      statements. An audit also includes assessing the accounting principles used
+      and significant estimates made by management, as well as evaluating the
+      overall financial statement presentation.
+    - >-
+      Because of the test nature and other inherent limitations of an audit,
+      together with the inherent limitations of any accounting and internal
+      control system, there is unavoidable risk that even some material
+      misstatements may remain undiscovered.
+    - >-
+      In addition to our report on the financial statements, we expect to provide
+      you with a separate letter concerning any material weaknesses in accounting
+      and internal control systems, which come into our notice.
+    - >-
+      We remind you that the responsibility for preparation of financial
+      statements including adequate disclosure in accordance with {framework_full}
+      is that of the management of {entity_name}. This includes the maintenance of
+      adequate accounting records and internal controls, the selection and
+      application of accounting policies, and the safeguarding of the assets of
+      the {noun}. As part of our audit process, we will request from management
+      written confirmation concerning representations made to us in connection
+      with the audit.
+    - >-
+      We look forward to full cooperation from your staff, and we trust that they
+      will make available to us whatever records, documentation and other
+      information requested in connection with our audit.
+    - "Our fees for statutory audit {vat_long}{per_year_suffix}, will be NRs {fee_figure_short}."
+    - >-
+      Please sign and return the attached copy of this letter to indicate that it
+      is in accordance with your understanding of the arrangements for our audit
+      of the Financial Statements.
+  closing: Yours faithfully,
+  acknowledgement: Acknowledged on behalf of
+
+# ---- Letter 3: Management Representation Letter (client letterhead) ----
+mrl:
+  salutation: Dear Sir/Madam,
+  opening: >-
+    This representation letter is provided in connection with your audit of the
+    Financial Statements of {entity_name} {period_ended} for the purpose of
+    expressing an opinion as to whether the financial statements present fairly,
+    in all material respects, the financial position of the {noun} as at
+    {fy_end_ad_last} and results of operations, statement of changes in equity,
+    its statement of cash flows, accounting policy and notes to the account for
+    the year then ended in accordance with {framework_full} and comply with
+    {statute_with_amendment} and other applicable acts. We appreciate that all
+    the information you require to form an opinion on the financial statements may
+    not be available from an examination of the accounting records and other
+    documents, and that you have obtained representations from the {noun}'s
+    {representation_givers}. The {representation_givers_short} acknowledge full
+    responsibility for the fair preparation of the financial statements in
+    accordance with the {framework_full} and comply with {statute_with_amendment}
+    and other applicable Acts. We further acknowledge our responsibility for the
+    design and implementation of internal control to prevent and detect fraud. We
+    confirm, to the best of our knowledge and belief the following representations:
+  headings:
+    liabilities: Liabilities, Provisions and Commitments
+    assets: Assets
+    other: Other Matters
+  closing_sentence: >-
+    To the best of our knowledge and belief, no events have occurred after the
+    statement of financial position date and through the date of this letter that
+    would require adjustment to or disclosure in the aforesaid financial statements.
+  closing: Yours faithfully,
+
+  # The 24 numbered representations. Each: text (Company wording with placeholders),
+  # group (liabilities|assets|other), applies_to (entity types that include it),
+  # and optional variants (full replacement text per entity type). Numbering
+  # re-flows automatically when a paragraph is dropped.
+  paragraphs:
+    # --- Liabilities, Provisions and Commitments ---
+    - group: liabilities
+      text: >-
+        We have recorded or disclosed, as appropriate, all liabilities, both
+        actual and contingent, including all guarantees we have given to third
+        parties.
+    - group: liabilities
+      text: >-
+        Full impairment loss has been made in the financial statements for all
+        material losses expected to arise from legal action, third party claims
+        and off-statement of financial position contracts.
+    - group: liabilities
+      text: >-
+        Except as indicated in the financial statements, none of the liabilities,
+        including those secured by reservation of title, were at the statement of
+        financial position's date, secured on any assets of the {noun}.
+    - group: liabilities
+      text: All commitment to loans and advances is disclosed in financial statement.
+    - group: liabilities
+      text: >-
+        All commitments to buy or sell securities or businesses, bonus or
+        profit-sharing arrangements, losses arising from sale and purchase
+        commitments and arrangements and options to buy back assets previously
+        sold have been properly recorded and where appropriate, adequately
+        disclosed in the financial statements.
+    # --- Assets ---
+    - group: assets
+      text: >-
+        The {noun} has satisfactory title to all the assets, and all assets
+        disposed of or belonging to third parties have been correctly reflected
+        in the financial statements.
+    - group: assets
+      text: >-
+        Unless where specifically disclosed in the financial statements, the
+        assets were owned by the {noun} free of any charge, encumbrance or lien.
+    - group: assets
+      text: >-
+        We have no plans to abandon lines of products/business or other plans or
+        intentions that will result in any excess or obsolete inventory/financial
+        assets, and no inventory/financial assets is stated at an amount in excess
+        of its fair value.
+    - group: assets
+      text: >-
+        All income which arose to the date of the statement of financial position
+        has been brought into the financial statements in accordance with the
+        {noun}'s accounting policies.
+    - group: assets
+      text: >-
+        There are no formal or informal compensating balance arrangements with any
+        of our cash and investment accounts. Except as disclosed in the financial
+        statements, we have no other lines of credit arrangements.
+    - group: assets
+      text: >-
+        Prepayments included in the statement of financial position are deferred to
+        be matched against income which can with reasonable certainty be expected
+        to accrue after the statement of financial position date.
+    - group: assets
+      applies_to: [Company]   # No. 12 bonus shares / dividend: Company only
+      text: >-
+        All the bonus shares/ dividend whose right to receive has been established
+        has been booked in the financial statements.
+    # --- Other Matters ---
+    - group: other
+      text: >-
+        We have made available to you, which we are aware that is relevant to the
+        preparation of the financial statements, such as records, documentation and
+        other matters; Additional information that you have requested from us for
+        the purpose of the audit; Unrestricted access to persons within the entity
+        from whom you determined it necessary to obtain audit evidence and all
+        minutes of shareholders' and directors' meetings.
+      variants:
+        Partnership Firm: >-
+          We have made available to you, which we are aware that is relevant to the
+          preparation of the financial statements, such as records, documentation and
+          other matters; Additional information that you have requested from us for
+          the purpose of the audit; Unrestricted access to persons within the entity
+          from whom you determined it necessary to obtain audit evidence and all
+          minutes of partners' meetings.
+        Proprietorship Firm: >-
+          We have made available to you, which we are aware that is relevant to the
+          preparation of the financial statements, such as records, documentation and
+          other matters; Additional information that you have requested from us for
+          the purpose of the audit; Unrestricted access to persons within the entity
+          from whom you determined it necessary to obtain audit evidence and all
+          records of the proprietor.
+        NPO: >-
+          We have made available to you, which we are aware that is relevant to the
+          preparation of the financial statements, such as records, documentation and
+          other matters; Additional information that you have requested from us for
+          the purpose of the audit; Unrestricted access to persons within the entity
+          from whom you determined it necessary to obtain audit evidence and all
+          minutes of executive committee and general meetings.
+    - group: other   # No. 14 directors' and shareholders' accounts: use {owners}
+      text: >-
+        We confirm the completeness of the information provided in regard to the
+        identification of, and balances and transactions with, related parties.
+        Amounts charged/credited to the directors' and shareholders accounts are
+        confirmed. All transactions with related parties including remuneration and
+        arrangements, transactions, or agreements to provide credit facilities to
+        the directors and officers of the {noun} or guarantees and securities
+        provided on their behalf have been fully disclosed in the financial
+        statements.
+      variants:
+        Partnership Firm: >-
+          We confirm the completeness of the information provided in regard to the
+          identification of, and balances and transactions with, related parties.
+          Amounts charged/credited to the partners accounts are confirmed. All
+          transactions with related parties including remuneration and arrangements,
+          transactions, or agreements to provide credit facilities to the partners
+          of the firm or guarantees and securities provided on their behalf have
+          been fully disclosed in the financial statements.
+        Proprietorship Firm: >-
+          We confirm the completeness of the information provided in regard to the
+          identification of, and balances and transactions with, related parties.
+          Amounts charged/credited to the proprietor account are confirmed. All
+          transactions with related parties including remuneration and arrangements,
+          transactions, or agreements to provide credit facilities to the proprietor
+          of the firm or guarantees and securities provided on their behalf have
+          been fully disclosed in the financial statements.
+        NPO: >-
+          We confirm the completeness of the information provided in regard to the
+          identification of, and balances and transactions with, related parties.
+          Amounts charged/credited to the executive committee members accounts are
+          confirmed. All transactions with related parties including remuneration and
+          arrangements, transactions, or agreements to provide credit facilities to
+          the executive committee members and officers of the entity or guarantees
+          and securities provided on their behalf have been fully disclosed in the
+          financial statements.
+    - group: other
+      text: >-
+        There have been no irregularities involving management or employees who have
+        a significant role in internal control or that could have a material effect
+        on the financial statements. Nor have there been any allegations of fraud or
+        suspected fraud, affecting the {noun}'s financial statements communicated by
+        employees, former employees, analysts, regulators, or others. The financial
+        statements are free of material misstatements, including omissions.
+    - group: other
+      text: >-
+        The {noun} has complied with all aspects of contractual agreements that could
+        have a material effect on the financial statements in the event of
+        non-compliance. We confirm that the {noun} has fully complied with all the
+        statutory and legal requirements that could have a material effect on the
+        financial statements in the event of non-compliance including payment of all
+        applicable taxes, duties and other statutory obligations.
+    - group: other
+      text: >-
+        There have been no subsequent events since the Statement of Financial
+        Position's date which necessitate revision of the amounts included in the
+        financial statements or inclusion of additional disclosure. Should any
+        material events occur, which may necessitate the revision of the amounts or
+        inclusion of further disclosure, we shall advise you accordingly.
+    - group: other
+      text: >-
+        There are no plans or intentions that may materially alter the carrying value
+        or the classification of assets and liabilities reflected in the financial
+        statements.
+    - group: other
+      text: >-
+        We have reviewed all the adjustments and journal entries proposed arising out
+        of the audit and confirm our acceptance thereof.
+    - group: other   # No. 20 loans to directors, promoters: firms/NPOs use {owners}
+      text: >-
+        The management declares that the management has not issued any loans to the
+        directors, employees, promoters or their close relatives or related parties
+        except allowed by the law.
+      variants:
+        Partnership Firm: >-
+          The management declares that the management has not issued any loans to the
+          partners, employees or their close relatives or related parties except
+          allowed by the law.
+        Proprietorship Firm: >-
+          The management declares that the management has not issued any loans to the
+          proprietor, employees or their close relatives or related parties except
+          allowed by the law.
+        NPO: >-
+          The management declares that the management has not issued any loans to the
+          executive committee members and general members, employees or their close
+          relatives or related parties except allowed by the law.
+    - group: other
+      applies_to: [Company]   # No. 21 declaration under the Companies Act: Company only
+      text: >-
+        The declaration from the directors and senior management personnel as required
+        by {statute_with_amendment} has been duly obtained and reported.
+    - group: other   # No. 22 approved by the board: use {governance_body}
+      text: >-
+        We believe that the going concern basis is appropriate in preparing the
+        financial statements for the year ended and the {noun} has necessary funds to
+        enable it to meet its liabilities as they fall due, for at least 12 months
+        from the date of the above financial statements are approved by the board for
+        issue.
+      variants:
+        Partnership Firm: >-
+          We believe that the going concern basis is appropriate in preparing the
+          financial statements for the year ended and the firm has necessary funds to
+          enable it to meet its liabilities as they fall due, for at least 12 months
+          from the date of the above financial statements are approved by the partners
+          for issue.
+        Proprietorship Firm: >-
+          We believe that the going concern basis is appropriate in preparing the
+          financial statements for the year ended and the firm has necessary funds to
+          enable it to meet its liabilities as they fall due, for at least 12 months
+          from the date of the above financial statements are approved by the proprietor
+          for issue.
+        NPO: >-
+          We believe that the going concern basis is appropriate in preparing the
+          financial statements for the year ended and the entity has necessary funds to
+          enable it to meet its liabilities as they fall due, for at least 12 months
+          from the date of the above financial statements are approved by the executive
+          committee for issue.
+    - group: other
+      text: >-
+        That the {noun} has not violated any provisions regarding deduction of tax at
+        source as prescribed by Income Tax Act, 2058.
+    - group: other   # No. 24 last sentence (loans to Board of Directors): Company only
+      text: >-
+        Personal expenses and expenses not related to the business are not charged to
+        income other than specified in tax computation sheet. The staff and others are
+        not provided with interest free or subsidized personal advances and other
+        benefits chargeable as per Income Tax Act, 2058 other than specified in salary
+        chart and tax computation sheet. The quarter and vehicle facility provided to
+        staff are included in salary chart. Any type of Loan, Guarantee and security
+        has not been provided to the {noun}'s Board of Director or his/her family or
+        corporate Body where he/she is a managing agents or shareholders.
+      variants:
+        Partnership Firm: >-
+          Personal expenses and expenses not related to the business are not charged to
+          income other than specified in tax computation sheet. The staff and others are
+          not provided with interest free or subsidized personal advances and other
+          benefits chargeable as per Income Tax Act, 2058 other than specified in salary
+          chart and tax computation sheet. The quarter and vehicle facility provided to
+          staff are included in salary chart.
+        Proprietorship Firm: >-
+          Personal expenses and expenses not related to the business are not charged to
+          income other than specified in tax computation sheet. The staff and others are
+          not provided with interest free or subsidized personal advances and other
+          benefits chargeable as per Income Tax Act, 2058 other than specified in salary
+          chart and tax computation sheet. The quarter and vehicle facility provided to
+          staff are included in salary chart.
+        NPO: >-
+          Personal expenses and expenses not related to the business are not charged to
+          income other than specified in tax computation sheet. The staff and others are
+          not provided with interest free or subsidized personal advances and other
+          benefits chargeable as per Income Tax Act, 2058 other than specified in salary
+          chart and tax computation sheet. The quarter and vehicle facility provided to
+          staff are included in salary chart.
+
+  # Optional NPO-only paragraphs (section 8). verified: false and OFF until a partner
+  # approves. When enabled, they are appended to the Other Matters group for NPOs.
+  npo_optional:
+    enabled: false
+    verified: false
+    paragraphs:
+      - group: other
+        applies_to: [NPO]
+        text: >-
+          All grants and donations received have been used only for the purposes
+          approved by the donors and the governing documents of the entity.
+      - group: other
+        applies_to: [NPO]
+        text: >-
+          Restricted and endowment funds have been accounted for separately and used
+          only in accordance with the restrictions imposed by the donors.
+      - group: other
+        applies_to: [NPO]
+        text: >-
+          All required approvals from the Social Welfare Council and the relevant
+          donors have been obtained and the related conditions have been complied with.
