@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/lib/auth.php';
-if (current_user()) redirect('index.php');
+
+// After sign-in: return to the page the user originally asked for (so old OCR
+// bookmarks land on OCR), otherwise show the tool chooser.
+$dest = safe_next() ?? 'home.php';
+if (current_user()) redirect($dest);
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($u && password_verify($password, $u['password_hash'])) {
             $_SESSION['login_fail'] = 0;
             login_user($u);
-            redirect('index.php');
+            redirect($dest);
         } else {
             $_SESSION['login_fail']++;
             $error = 'Incorrect username or password.';
@@ -32,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Sign in · OCR Document Generator</title>
+<title>Sign in · P.S.G. &amp; Associates Staff Tools</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,10 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="brand"><span class="logo-word">P.S.G.<span class="amp">&amp;</span>Associates</span><span class="logo-sub">Chartered Accountants</span></div>
     <span class="eyebrow">Staff Access</span>
     <h1>Sign in</h1>
-    <p class="sub">OCR Document Generator — use your Daily Reporting login.</p>
+    <p class="sub">Staff tools — use your Daily Reporting login.</p>
     <?php if ($error): ?><div class="err"><?= e($error) ?></div><?php endif; ?>
     <form method="post" autocomplete="off">
       <?= csrf_field() ?>
+      <?php if ($n = safe_next()): ?><input type="hidden" name="next" value="<?= e($n) ?>"><?php endif; ?>
       <label>Username</label>
       <input type="text" name="username" autofocus required>
       <label>Password</label>

@@ -327,6 +327,42 @@
       context: c,
     };
   }
+  // ---- docxtemplater payload ----
+  // Flat values + MRL group arrays for the reference-based .docx template
+  // (templates/audit-letter-template.docx). Uses the SAME computations and the
+  // SAME YAML as generate()/letterText(), so the filled template reads identically.
+  function resolveText(tmpl, ctx) { return runsText(resolve(tmpl, ctx)); }
+  function templateData(inputs, rules) {
+    var c = buildContext(inputs, rules, false), ctx = c.ctx, t = {};
+    function s(k) { return runsText(ctx[k]); }
+    ["entity_name", "fy_label", "fee_figure", "fee_figure_short", "fee_words", "vat_short", "vat_long",
+      "framework_full", "signatory_name", "signatory_designation", "statute", "statute_with_amendment",
+      "representation_givers", "representation_givers_short", "auditor_designation", "firm_name", "firm_city",
+      "entity_address", "engagement_addressee", "noun", "per_year_suffix", "fs_lead", "fy_of", "fs_rest",
+      "period_clause", "period_ended", "fy_end_ad_last"].forEach(function (k) { t[k] = s(k); });
+    t.appointment_date = s("appointment_date_bs");
+    t.appointment_date_short = s("appointment_date_bs_short");
+    t.engagement_date = s("engagement_date_bs");
+    t.mrl_date = s("mrl_date_bs");
+    t.auditor_title = inputs.auditorTitle;
+    t.auditor_name = (inputs.auditorName || "").replace(/^CA\s+/i, "");
+    t.auditor_prefix_name = s("auditor_prefix_name");
+    // MRL groups: same filter/variant selection as mrl()
+    var m = rules.mrl, paras = m.paragraphs.slice();
+    if (m.npo_optional && m.npo_optional.enabled && m.npo_optional.verified && inputs.entityType === "NPO")
+      paras = paras.concat(m.npo_optional.paragraphs);
+    function grp(g) {
+      return paras.filter(function (p) {
+        return p.group === g && (!p.applies_to || p.applies_to.indexOf(inputs.entityType) !== -1);
+      }).map(function (p) {
+        var txt = (p.variants && p.variants[inputs.entityType]) || p.text;
+        return collapse(resolveText(collapse(txt), ctx));
+      });
+    }
+    t.liabilities = grp("liabilities"); t.assets = grp("assets"); t.other = grp("other");
+    return t;
+  }
+
   // Flatten one letter's blocks to plain text (for tests).
   function letterText(blocks) {
     var lines = [];
@@ -364,7 +400,7 @@
   }
 
   return {
-    generate: generate, letterText: letterText, runsText: runsText, validate: validate,
+    generate: generate, letterText: letterText, templateData: templateData, runsText: runsText, validate: validate,
     amountInWords: amountInWords, formatMoney: formatMoney, ordinal: ordinal,
     formatBS: formatBS, formatAD: formatAD, fyEnd: fyEnd, fyLabel: fyLabel, fyShort: fyShort,
     addBSDays: addBSDays, bsMonthDays: bsMonthDays, BS_MONTHS: BS_MONTHS, collapse: collapse,

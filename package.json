@@ -2,15 +2,16 @@
   "name": "psg-ocr",
   "version": "1.0.0",
   "private": true,
-  "description": "Internal OCR document + audit-letter generator for ocr.psgassociates.com.np (static, client-side). This package.json is dev tooling only (tests and sample generation); nothing here is deployed.",
+  "description": "Internal OCR document + audit-letter generator for ocr.psgassociates.com.np (static, client-side). This package.json is dev tooling only (tests and sample generation). The deployed browser code vendors pizzip.min.js and docxtemplater.min.js under assets/js/.",
   "type": "commonjs",
   "scripts": {
     "test": "node scripts/audit-letters.test.js",
     "samples": "node scripts/make-samples.js"
   },
   "devDependencies": {
-    "docx": "9.5.1",
+    "docxtemplater": "3.71.0",
     "js-yaml": "5.4.2",
-    "nepali-date-converter": "3.4.0"
+    "nepali-date-converter": "3.4.0",
+    "pizzip": "3.3.0"
   }
 }

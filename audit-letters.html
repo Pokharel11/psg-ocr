@@ -7,174 +7,171 @@
 <meta name="description" content="Internal audit-letter generator (appointment, engagement and management representation letters) for P.S.G. & Associates staff.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,500..700&family=Hanken+Grotesk:wght@300..600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#14122a; --indigo:#2f2a76; --indigo-2:#3b3690; --slate:#565b6e;
-    --brass:#b89455; --brass-deep:#97742f; --gold:#d8b877; --cream:#eef1f6;
-    --paper:#fff; --paper-2:#f5f6f9; --line:rgba(24,28,56,.14); --line-soft:rgba(24,28,56,.08);
-    --display:"Plus Jakarta Sans",system-ui,sans-serif; --body:"Hanken Grotesk",system-ui,sans-serif; --mono:"Spline Sans Mono",monospace;
-  }
-  *{ box-sizing:border-box; }
-  body{ font-family:var(--body); background:var(--paper-2); color:var(--ink); line-height:1.55; margin:0; }
-  a{ color:var(--indigo); }
-  .top{ background:var(--ink); color:#eef0f6; padding:.9rem clamp(1rem,3vw,2rem); display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
-  .top .brand{ font-family:var(--display); font-weight:700; letter-spacing:-.01em; }
-  .top .brand small{ display:block; font-family:var(--mono); font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); }
-  .top nav a{ color:#cfd2e4; text-decoration:none; font-size:.85rem; margin-left:1.2rem; }
-  .top nav a:hover{ color:var(--gold); }
-  .wrap{ max-width:1080px; margin:0 auto; padding:clamp(1rem,3vw,2rem); }
-  h1{ font-family:var(--display); font-size:clamp(1.5rem,3.5vw,2.1rem); letter-spacing:-.02em; margin:.2rem 0 .3rem; }
-  .lead{ color:var(--slate); max-width:62ch; margin:0 0 1.4rem; }
-  .banner{ background:#fff7e6; border:1px solid var(--brass); color:var(--brass-deep); border-radius:10px; padding:.7rem 1rem; font-size:.9rem; margin-bottom:1.4rem; }
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.4rem; }
-  @media(max-width:720px){ .grid{ grid-template-columns:1fr; } }
-  fieldset{ border:1px solid var(--line-soft); border-radius:14px; background:var(--paper); padding:1.1rem 1.2rem 1.3rem; margin:0 0 1.2rem; box-shadow:0 1px 2px rgba(20,24,55,.04),0 8px 24px rgba(20,24,55,.05); }
-  legend{ font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--brass-deep); padding:0 .4rem; }
-  label{ display:block; font-size:.85rem; font-weight:500; margin:.9rem 0 .3rem; color:#2a2746; }
-  label .hint{ color:var(--slate); font-weight:400; }
-  input,select{ width:100%; font-family:var(--body); font-size:.95rem; color:var(--ink); background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:.55em .7em; }
-  input:focus,select:focus{ outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(47,42,118,.12); }
-  .row3{ display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:.5rem; }
-  .inline{ display:flex; align-items:center; gap:.5rem; margin-top:.9rem; }
-  .inline input[type=checkbox],.inline input[type=radio]{ width:auto; }
-  .radios{ display:flex; gap:1.2rem; margin-top:.4rem; flex-wrap:wrap; }
-  .radios label{ display:flex; align-items:center; gap:.4rem; margin:0; font-weight:400; }
-  .live{ font-family:var(--mono); font-size:.8rem; color:var(--indigo); margin-top:.4rem; }
-  .actions{ position:sticky; bottom:0; background:linear-gradient(transparent,var(--paper-2) 30%); padding:1rem 0; display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; }
-  .btn{ font-family:var(--body); font-weight:600; font-size:.95rem; border:none; border-radius:9px; padding:.75em 1.4em; cursor:pointer; }
-  .btn-primary{ background:var(--indigo); color:#fff; }
-  .btn-primary:hover{ background:var(--indigo-2); }
-  .btn-ghost{ background:transparent; color:var(--indigo); border:1px solid var(--line); }
-  .msgs{ margin:.2rem 0 1rem; }
-  .msg-err{ color:#b4231f; background:#fdeceb; border:1px solid #f2b8b5; border-radius:8px; padding:.5rem .8rem; font-size:.88rem; margin-bottom:.4rem; }
-  .msg-warn{ color:var(--brass-deep); background:#fff7e6; border:1px solid #e9cf9a; border-radius:8px; padding:.5rem .8rem; font-size:.88rem; margin-bottom:.4rem; }
-  .muted{ color:var(--slate); font-size:.8rem; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,500..700&family=Hanken+Grotesk:wght@300..600&family=Spline+Sans+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/app.css?v=2">
 </head>
 <body>
-<header class="top">
-  <div class="brand">P.S.G. &amp; Associates<small>Internal tools</small></div>
-  <nav><a href="/">OCR filings</a><a href="audit-letters.php">Audit letters</a><a href="logout.php">Log out</a></nav>
-</header>
 
-<main class="wrap">
-  <h1>Audit letter generator</h1>
-  <p class="lead">Fill in the engagement once and download a Word file with the appointment letter, the statutory audit engagement letter and the management representation letter. Everything is generated in your browser; nothing is sent or stored.</p>
-  <div class="banner" id="verifyBanner" hidden>Vocabulary not yet verified: the entity-type and framework wording is still draft (<code>verified: false</code> in audit-letters.yaml). Check the output before sending.</div>
+<!--APPBAR-->
 
-  <form id="alForm" autocomplete="off">
-    <div class="grid">
-      <fieldset>
-        <legend>Entity</legend>
-        <label>Entity type</label>
-        <select id="entityType"></select>
-        <label>Entity name <span class="hint">full legal name</span></label>
-        <input id="entityName" placeholder="e.g. Himalaya Widgets Pvt. Ltd.">
-        <label>Entity address</label>
-        <input id="entityAddress" value="Kathmandu, Nepal">
-        <label>Accounting framework</label>
-        <select id="framework"></select>
-      </fieldset>
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">Audit Letters</span>
+    <h1 class="panel-title">Audit Letter Generator</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Fill in the engagement once and download a Word file with the appointment letter, the statutory audit engagement letter and the management representation letter. Everything is generated in your browser — nothing is sent or stored.</p>
 
-      <fieldset>
-        <legend>Signatory</legend>
-        <label>Signatory name</label>
-        <input id="signatoryName" placeholder="name of the person signing for the client">
-        <label>Signatory designation</label>
-        <input id="signatoryDesignation" list="designations" placeholder="Chairperson">
-        <datalist id="designations">
-          <option>Chairperson</option><option>Managing Partner</option><option>Proprietor</option><option>Chairperson of NPO</option>
-        </datalist>
-      </fieldset>
+    <div class="banner" id="verifyBanner" hidden>Vocabulary not yet verified: the entity-type and framework wording is still draft (<code>verified: false</code> in audit-letters.yaml). Check the output before sending.</div>
 
-      <fieldset>
-        <legend>Fiscal year</legend>
-        <label>From FY</label>
-        <select id="fromFY"></select>
-        <label>To FY</label>
-        <select id="toFY"></select>
-        <label id="feeBasisWrap" hidden>Fee basis</label>
-        <div class="radios" id="feeBasisRadios" hidden>
-          <label><input type="radio" name="feeBasis" value="total" checked> Total for all years</label>
-          <label><input type="radio" name="feeBasis" value="peryear"> Per year</label>
+    <form id="alForm" autocomplete="off">
+      <!-- Entity -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Entity</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Entity type <span class="required">*</span></label>
+            <select id="entityType"></select>
+          </div>
+          <div class="field-group">
+            <label>Accounting framework <span class="required">*</span></label>
+            <select id="framework"></select>
+          </div>
+          <div class="field-group full">
+            <label>Entity name <span class="required">*</span><span class="hint">Full legal name</span></label>
+            <input id="entityName" placeholder="e.g. Himalaya Widgets Pvt. Ltd.">
+          </div>
+          <div class="field-group full">
+            <label>Entity address</label>
+            <input id="entityAddress" value="Kathmandu, Nepal">
+          </div>
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset>
-        <legend>Fee</legend>
-        <label>Audit fee (Rs.)</label>
-        <input id="fee" type="number" min="0" step="0.01" placeholder="140000">
-        <label>VAT</label>
-        <div class="radios">
-          <label><input type="radio" name="vat" value="exclusive" checked> Exclusive of VAT</label>
-          <label><input type="radio" name="vat" value="inclusive"> Inclusive of VAT</label>
+      <!-- Signatory -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">✍️</span> Signatory</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Signatory name <span class="required">*</span><span class="hint">Person signing for the client</span></label>
+            <input id="signatoryName" placeholder="e.g. full name">
+          </div>
+          <div class="field-group">
+            <label>Signatory designation</label>
+            <input id="signatoryDesignation" list="designations" placeholder="Chairperson">
+            <datalist id="designations">
+              <option>Chairperson</option><option>Managing Partner</option><option>Proprietor</option><option>Chairperson of NPO</option>
+            </datalist>
+          </div>
         </div>
-        <label>Number grouping</label>
-        <div class="radios">
-          <label><input type="radio" name="grouping" value="international" checked> 140,000</label>
-          <label><input type="radio" name="grouping" value="nepali"> 1,40,000</label>
-        </div>
-        <div class="live" id="feeWords"></div>
-      </fieldset>
+      </div>
 
-      <fieldset>
-        <legend>Dates (Bikram Sambat)</legend>
-        <label>Appointment date</label>
-        <div class="row3">
-          <input id="apY" type="number" placeholder="Year" value="2083">
-          <select id="apM"></select>
-          <input id="apD" type="number" min="1" max="32" placeholder="Day">
+      <!-- Engagement period & fee -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📆</span> Engagement Period &amp; Fee</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>From FY <span class="required">*</span></label>
+            <select id="fromFY"></select>
+          </div>
+          <div class="field-group">
+            <label>To FY <span class="required">*</span></label>
+            <select id="toFY"></select>
+          </div>
+          <div class="field-group full" id="feeBasisGroup" hidden>
+            <label id="feeBasisWrap">Fee basis</label>
+            <div class="radios" id="feeBasisRadios">
+              <label><input type="radio" name="feeBasis" value="total" checked> Total for all years</label>
+              <label><input type="radio" name="feeBasis" value="peryear"> Per year</label>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Audit fee (Rs.) <span class="required">*</span></label>
+            <input id="fee" type="number" min="0" step="0.01" placeholder="140000">
+            <div class="live" id="feeWords"></div>
+          </div>
+          <div class="field-group">
+            <label>VAT</label>
+            <div class="radios">
+              <label><input type="radio" name="vat" value="exclusive" checked> Exclusive of VAT</label>
+              <label><input type="radio" name="vat" value="inclusive"> Inclusive of VAT</label>
+            </div>
+          </div>
+          <div class="field-group full">
+            <label>Number grouping</label>
+            <div class="radios">
+              <label><input type="radio" name="grouping" value="international" checked> 140,000</label>
+              <label><input type="radio" name="grouping" value="nepali"> 1,40,000</label>
+            </div>
+          </div>
         </div>
-        <label>Engagement date <span class="hint">auto: appointment + 1 day (editable)</span></label>
-        <div class="row3">
-          <input id="enY" type="number" placeholder="Year">
-          <select id="enM"></select>
-          <input id="enD" type="number" min="1" max="32" placeholder="Day">
-        </div>
-        <div class="live" id="engWarn"></div>
-        <label>MRL date <span class="hint">after the last FY end</span></label>
-        <div class="row3">
-          <input id="mrlY" type="number" placeholder="Year" value="2083">
-          <select id="mrlM"></select>
-          <input id="mrlD" type="number" min="1" max="32" placeholder="Day">
-        </div>
-      </fieldset>
+      </div>
 
-      <fieldset>
-        <legend>Auditor &amp; firm</legend>
-        <label>Auditor</label>
-        <select id="auditorPick"></select>
-        <div class="row3" style="grid-template-columns:.7fr 1.6fr 1fr; margin-top:.4rem;">
-          <input id="auditorTitle" placeholder="Mr.">
-          <input id="auditorName" placeholder="Auditor name">
-          <input id="auditorDesignation" placeholder="Partner">
+      <!-- Dates -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📅</span> Dates (Bikram Sambat)</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Appointment date <span class="required">*</span></label>
+            <div class="bs-date"><input id="apY" type="number" placeholder="Year" value="2083"><select id="apM"></select><input id="apD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
+          <div class="field-group">
+            <label>Engagement date <span class="hint">Auto: appointment + 1 day (editable)</span></label>
+            <div class="bs-date"><input id="enY" type="number" placeholder="Year"><select id="enM"></select><input id="enD" type="number" min="1" max="32" placeholder="Day"></div>
+            <div class="live" id="engWarn"></div>
+          </div>
+          <div class="field-group">
+            <label>MRL date <span class="hint">After the last FY end</span></label>
+            <div class="bs-date"><input id="mrlY" type="number" placeholder="Year" value="2083"><select id="mrlM"></select><input id="mrlD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
         </div>
-        <label>Audit firm</label>
-        <input id="firmName" value="P.S.G. & Associates">
-        <label>Firm city</label>
-        <input id="firmCity" value="Kathmandu">
-        <div class="inline"><input type="checkbox" id="highlight"><label for="highlight" style="margin:0;">Highlight filled values for review (yellow)</label></div>
-      </fieldset>
-    </div>
+      </div>
 
-    <div class="msgs" id="msgs"></div>
-    <div class="actions">
-      <button type="button" class="btn btn-primary" id="genCombined">Download Word file</button>
-      <button type="button" class="btn btn-ghost" id="genSeparate">Download three files</button>
-      <span class="muted">Generated in your browser. Nothing is uploaded.</span>
-    </div>
-  </form>
+      <!-- Auditor & firm -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📋</span> Auditor &amp; Firm</div>
+        <div class="field-grid">
+          <div class="field-group full">
+            <label>Auditor</label>
+            <select id="auditorPick"></select>
+          </div>
+          <div class="field-group full">
+            <label>Auditor details <span class="hint">Title · name · designation</span></label>
+            <div class="bs-date" style="grid-template-columns:.7fr 1.8fr 1fr;"><input id="auditorTitle" placeholder="Mr."><input id="auditorName" placeholder="Auditor name"><input id="auditorDesignation" placeholder="Partner"></div>
+          </div>
+          <div class="field-group">
+            <label>Audit firm</label>
+            <input id="firmName" value="P.S.G. & Associates">
+          </div>
+          <div class="field-group">
+            <label>Firm city</label>
+            <input id="firmCity" value="Kathmandu">
+          </div>
+          <div class="field-group full">
+            <div class="radios"><label><input type="checkbox" id="highlight"> Highlight filled values for review (yellow)</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msgs" id="msgs"></div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="genCombined">Download Word file <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-outline" id="genSeparate">Download three files</button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+    </form>
+  </div>
 </main>
 
 <script src="assets/js/js-yaml.min.js"></script>
 <script src="assets/js/nepali-date.umd.js"></script>
-<script src="assets/js/docx.min.js"></script>
+<script src="assets/js/pizzip.min.js"></script>
+<script src="assets/js/docxtemplater.min.js"></script>
 <script src="assets/js/audit-letters-core.js"></script>
 <script src="assets/js/audit-letters-render.js"></script>
-<script src="assets/js/audit-letters.js?v=1"></script>
+<script src="assets/js/audit-letters.js?v=3"></script>
 </body>
 </html>

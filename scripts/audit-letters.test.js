@@ -6,10 +6,14 @@
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const PizZip = require("pizzip");
+const Docxtemplater = require("docxtemplater");
 const AuditCore = require("../assets/js/audit-letters-core.js");
+const AuditRender = require("../assets/js/audit-letters-render.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const rules = yaml.load(fs.readFileSync(path.join(ROOT, "audit-letters.yaml"), "utf8"));
+const TEMPLATE = fs.readFileSync(path.join(ROOT, "templates", "audit-letter-template.docx"));
 
 let pass = 0, fail = 0;
 function ok(name, cond, extra) { if (cond) { pass++; console.log("  PASS  " + name); } else { fail++; console.log("  FAIL  " + name + (extra ? "\n        " + extra : "")); } }
@@ -146,6 +150,62 @@ eq("5. ordinals", [1, 2, 3, 11, 12, 13, 21, 22, 23, 31, 32].map(AuditCore.ordina
   const txt = fullText(AuditCore.generate(inp, rules));
   ok("7. Income and Expenditure statement named", txt.indexOf("Statement of Income and Expenditure") !== -1);
   ok("7. Association Registration Act appears", txt.indexOf("Association Registration Act, 2034") !== -1);
+})();
+
+// 8) TEMPLATE PARITY: the reference-based .docx template, filled via the SAME
+// data (AuditCore.templateData), must read identically to AuditCore.letterText()
+// for every entity type and for a range. This ties the Word template (which the
+// browser downloads) to the text that tests 1-7 verify against the reference.
+(function () {
+  function docxText(bytes) {
+    const xml = new PizZip(bytes).file("word/document.xml").asText();
+    return [...xml.matchAll(/<w:p\b[\s\S]*?<\/w:p>/g)].map(function (m) {
+      return [...m[0].matchAll(/<w:t(?: [^>]*)?>([\s\S]*?)<\/w:t>/g)].map(function (z) { return z[1]; }).join("");
+    }).join("\n").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+  }
+  function coreAll(inp) {
+    const g = AuditCore.generate(inp, rules);
+    return [AuditCore.letterText(g.appointment), AuditCore.letterText(g.engagement), AuditCore.letterText(g.mrl)].join("\n");
+  }
+  function numberedCount(bytes) {
+    const xml = new PizZip(bytes).file("word/document.xml").asText();
+    return (xml.match(/<w:numId w:val="8"\/>/g) || []).length;
+  }
+  const cases = [
+    ["Company/NFRS", base, 24],
+    ["Partnership", Object.assign({}, base, { entityType: "Partnership Firm", entityName: "Sample Trading Firm", signatoryDesignation: "Managing Partner" }), 22],
+    ["Proprietorship", Object.assign({}, base, { entityType: "Proprietorship Firm", entityName: "Example Proprietorship", framework: "NAS for MEs", signatoryDesignation: "Proprietor" }), 22],
+    ["NPO", Object.assign({}, base, { entityType: "NPO", entityName: "Demo Social Organization", framework: "NAS for NPOs" }), 22],
+    ["Company range 2079-2082", Object.assign({}, base, { fromFY: 2079, toFY: 2082, feeBasis: "peryear" }), 24],
+  ];
+  cases.forEach(function (c) {
+    const name = c[0], inp = c[1], wantNum = c[2];
+    const bytes = AuditRender.combined(TEMPLATE, AuditCore.templateData(inp, rules), { highlight: false });
+    const got = norm(docxText(bytes)), exp = norm(coreAll(inp));
+    if (got === exp) { pass++; console.log("  PASS  8. template text parity: " + name); }
+    else {
+      fail++;
+      let i = 0; while (i < got.length && i < exp.length && got[i] === exp[i]) i++;
+      console.log("  FAIL  8. template text parity: " + name + " (first diff at " + i + ")");
+      console.log("        core: ..." + JSON.stringify(exp.slice(Math.max(0, i - 40), i + 60)));
+      console.log("        docx: ..." + JSON.stringify(got.slice(Math.max(0, i - 40), i + 60)));
+    }
+    eq("8. " + name + ": MRL numbered items (numId=8)", numberedCount(bytes), wantNum);
+  });
+  // Highlight toggle: review mode keeps the reference's yellow highlights; normal strips them.
+  const onBytes = AuditRender.combined(TEMPLATE, AuditCore.templateData(base, rules), { highlight: true });
+  const offBytes = AuditRender.combined(TEMPLATE, AuditCore.templateData(base, rules), { highlight: false });
+  const onN = (new PizZip(onBytes).file("word/document.xml").asText().match(/w:highlight w:val="yellow"/g) || []).length;
+  const offN = (new PizZip(offBytes).file("word/document.xml").asText().match(/w:highlight w:val="yellow"/g) || []).length;
+  ok("8. review highlight present when on", onN > 0);
+  eq("8. no highlight when off", offN, 0);
+  // Separate download: three valid letters, each starting correctly.
+  const three = AuditRender.separate(TEMPLATE, AuditCore.templateData(base, rules), { highlight: false });
+  ok("8. separate: appointment has Sub line", docxText(three.appointment).indexOf("Sub: Appointment Letter") !== -1);
+  ok("8. separate: engagement has Sub line", docxText(three.engagement).indexOf("Statutory Audit Engagement Letter") !== -1);
+  ok("8. separate: MRL has representation letter opening", docxText(three.mrl).indexOf("This representation letter is provided") !== -1);
+  ok("8. separate: appointment has no MRL text", docxText(three.appointment).indexOf("This representation letter") === -1);
 })();
 
 console.log("\n" + pass + " passed, " + fail + " failed.");

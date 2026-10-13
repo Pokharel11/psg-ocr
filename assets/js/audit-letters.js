@@ -7,17 +7,22 @@
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
   var RULES = null;
+  var TEMPLATE = null; // reference-based .docx template (ArrayBuffer)
 
   function opt(sel, value, text) { var o = document.createElement("option"); o.value = value; o.textContent = text; sel.appendChild(o); }
   function monthOptions(sel) { AuditCore.BS_MONTHS.forEach(function (m, i) { opt(sel, i, m); }); }
   function val(id) { return $(id).value.trim(); }
   function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : null; }
 
-  fetch("audit-letters.yaml").then(function (r) { return r.text(); }).then(function (txt) {
-    RULES = jsyaml.load(txt);
+  Promise.all([
+    fetch("audit-letters.yaml").then(function (r) { return r.text(); }),
+    fetch("templates/audit-letter-template.docx").then(function (r) { return r.arrayBuffer(); })
+  ]).then(function (res) {
+    RULES = jsyaml.load(res[0]);
+    TEMPLATE = res[1];
     init();
   }).catch(function () {
-    $("msgs").innerHTML = '<div class="msg-err">Could not load the wording file (audit-letters.yaml).</div>';
+    $("msgs").innerHTML = '<div class="msg-err">Could not load the letter template or wording file.</div>';
   });
 
   function init() {
@@ -61,8 +66,7 @@
   }
   function onFY() {
     var range = +$("fromFY").value !== +$("toFY").value;
-    $("feeBasisWrap").hidden = !range;
-    $("feeBasisRadios").hidden = !range;
+    var g = $("feeBasisGroup"); if (g) g.hidden = !range;
     render();
   }
   function bsFrom(pre) { var y = +val(pre + "Y"), m0 = +$(pre + "M").value, d = +val(pre + "D"); return y && d ? { y: y, m0: m0, day: d } : null; }
@@ -106,7 +110,9 @@
   function shortName(name) { return (name || "Entity").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 28) || "Entity"; }
   function fyTag(inp) { return AuditCore.fyLabel(inp.fromFY, inp.toFY).replace(/FY\s*/g, "").replace(/\s*to\s*/g, "_to_").replace(/\//g, "-"); }
 
-  function saveBlob(blob, name) {
+  var DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  function saveBlob(dataBytes, name) {
+    var blob = new Blob([dataBytes], { type: DOCX_MIME });
     var a = document.createElement("a"), url = URL.createObjectURL(blob);
     a.href = url; a.download = name; document.body.appendChild(a); a.click();
     setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
@@ -118,15 +124,21 @@
     var v = AuditCore.validate(inp);
     showMessages(v);
     if (v.errors.length) return;
-    var gen = AuditCore.generate(inp, RULES);
+    if (!TEMPLATE) { showMessages({ errors: ["The letter template is still loading; please try again in a moment."], warnings: [] }); return; }
+    var data = AuditCore.templateData(inp, RULES);
+    var opts = { highlight: inp.highlight };
     var tag = shortName(inp.entityName) + "_" + fyTag(inp);
-    if (!separate) {
-      AuditRender.Packer.toBlob(AuditRender.combined(gen)).then(function (b) { saveBlob(b, tag + "_Audit_Letters.docx"); });
-    } else {
-      var d = AuditRender.separate(gen);
-      AuditRender.Packer.toBlob(d.appointment).then(function (b) { saveBlob(b, tag + "_Appointment.docx"); });
-      AuditRender.Packer.toBlob(d.engagement).then(function (b) { saveBlob(b, tag + "_Engagement.docx"); });
-      AuditRender.Packer.toBlob(d.mrl).then(function (b) { saveBlob(b, tag + "_MRL.docx"); });
+    try {
+      if (!separate) {
+        saveBlob(AuditRender.combined(TEMPLATE, data, opts), tag + "_Audit_Letters.docx");
+      } else {
+        var d = AuditRender.separate(TEMPLATE, data, opts);
+        saveBlob(d.appointment, tag + "_Appointment.docx");
+        saveBlob(d.engagement, tag + "_Engagement.docx");
+        saveBlob(d.mrl, tag + "_MRL.docx");
+      }
+    } catch (e) {
+      showMessages({ errors: ["Could not build the document: " + (e && e.message ? e.message : e)], warnings: [] });
     }
   }
 })();

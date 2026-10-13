@@ -1,6 +1,6 @@
 <?php
-/** Gate: require a valid login, then serve the audit letter generator UI. */
-require_once __DIR__ . '/lib/auth.php';
-require_login();
-header('Content-Type: text/html; charset=utf-8');
-readfile(__DIR__ . '/audit-letters.html');
+/** Gate: require a valid login, then serve the audit letter generator UI
+ *  with the shared header injected. */
+require_once __DIR__ . '/lib/ui.php';
+$u = require_login();
+serve_tool(__DIR__ . '/audit-letters.html', 'audit', $u);

@@ -33,11 +33,28 @@ function current_user(): ?array {
 
 function require_login(): array {
     $u = current_user();
-    if (!$u) redirect('login.php');
+    if (!$u) {
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        redirect('login.php?next=' . rawurlencode($uri));
+    }
     return $u;
 }
 
 function redirect(string $to): void { header('Location: ' . $to); exit; }
+
+/**
+ * A safe post-login destination from the ?next= / next POST field, or null.
+ * Only local absolute paths among the known tool pages are allowed, so this
+ * can never be turned into an open redirect to another host.
+ */
+function safe_next(): ?string {
+    $n = (string)($_POST['next'] ?? $_GET['next'] ?? '');
+    if ($n === '' || $n[0] !== '/' || (isset($n[1]) && $n[1] === '/')) return null;
+    if (strpbrk($n, "\\\r\n\t") !== false) return null;
+    $path = parse_url($n, PHP_URL_PATH);
+    $allowed = ['/', '/index.php', '/home.php', '/audit-letters.php'];
+    return in_array($path, $allowed, true) ? $n : null;
+}
 
 function csrf_token(): string {
     if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
