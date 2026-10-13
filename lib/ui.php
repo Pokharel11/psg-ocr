@@ -54,5 +54,7 @@ function serve_tool(string $htmlFile, string $active, array $user): void {
     }
     $html = str_replace('<!--APPBAR-->', app_header($active, $user), $html);
     header('Content-Type: text/html; charset=utf-8');
+    // Never cache the shell itself, so bumped ?v= asset versions always take effect.
+    header('Cache-Control: no-cache, must-revalidate');
     echo $html;
 }
