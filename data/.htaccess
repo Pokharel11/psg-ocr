@@ -1,0 +1,11 @@
+# The firm's entity vocabulary (entities.yaml) is served only to signed-in
+# staff, through the same PHP login check as the portal. Every direct request
+# is routed to /protected-asset.php, which calls require_login() first.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(.+)$ /protected-asset.php?dir=data&file=$1 [L,QSA]
+</IfModule>
+# If URL rewriting is unavailable, deny rather than expose the files.
+<IfModule !mod_rewrite.c>
+  Require all denied
+</IfModule>

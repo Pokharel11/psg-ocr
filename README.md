@@ -19,6 +19,15 @@ There is **no server** — nothing is uploaded; documents are generated on the
 user's device and downloaded directly. (PDF: open the `.docx` in Word/Google Docs
 and "Save as PDF".)
 
+**No client data is ever stored in static files.** Every document is built in the
+browser from the form the user fills in; no client or signatory data is written to
+the repo, to `data/`, to `templates/`, or anywhere on the server. The files under
+`data/` and `templates/` are the firm's own blank templates and entity vocabulary;
+they are served **only to signed-in staff** through `protected-asset.php` (the same
+`require_login()` check as the portal) — a `.htaccess` in each folder routes every
+direct request to that gate, so an unauthenticated hit is redirected to login.
+JS and CSS stay public.
+
 Files:
 - `partials/tool-ocr.html` — the OCR wizard markup (ids prefixed `ocr-`), injected
   into the portal. Generated from the old `app.html`; served via the portal only.
