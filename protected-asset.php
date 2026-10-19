@@ -16,7 +16,16 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
-require_login(); // 302 -> login.php?next=... when there is no valid session.
+
+// Same session/login check as the portal (current_user()), but respond 403 for
+// these asset requests instead of redirecting: a 302 to the relative login.php
+// would resolve under /data or /templates (wrong path, and a loop in a browser),
+// and a redirect to an HTML page is a confusing result for a fetch().
+if (!current_user()) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit('Forbidden — sign in to the staff portal first.');
+}
 
 // Only these two folders are served this way, and only these extensions.
 $allowedDirs = ['data', 'templates'];
