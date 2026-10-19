@@ -2,11 +2,12 @@
   "name": "psg-ocr",
   "version": "1.0.0",
   "private": true,
-  "description": "Internal OCR document + audit-letter generator for ocr.psgassociates.com.np (static, client-side). This package.json is dev tooling only (tests and sample generation). The deployed browser code vendors pizzip.min.js and docxtemplater.min.js under assets/js/.",
+  "description": "Internal staff document portal for ocr.psgassociates.com.np (static, client-side): OCR filings, Audit Letters, Bank Account Opening. This package.json is dev tooling only (tests and sample generation). The deployed browser code vendors pizzip.min.js and docxtemplater.min.js under assets/js/.",
   "type": "commonjs",
   "scripts": {
-    "test": "node scripts/audit-letters.test.js",
-    "samples": "node scripts/make-samples.js"
+    "test": "node scripts/audit-letters.test.js && node scripts/bank.test.js",
+    "samples": "node scripts/make-samples.js",
+    "bank-samples": "node scripts/make-bank-samples.js"
   },
   "devDependencies": {
     "docxtemplater": "3.71.0",

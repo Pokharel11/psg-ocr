@@ -168,6 +168,41 @@ Two things here are **copies** of data that lives in the website repo
   website's `_data/team.js` partners. When a partner is added, changed or removed
   there, update it here too (name without the "CA " prefix).
 
+## Bank Docs — Account Opening
+
+Bank Docs > Account Opening produces one Word file with the **meeting minutes** and the
+**bank account-opening application letter**, built the same way as the audit letters —
+by filling a copy of the firm's reference template:
+
+- `templates/bank-account-template.docx` — the reference
+  (`Bank_Account_Opening_Template_With_Letterhead.docx`) with docxtemplater
+  placeholders, **loops** for members, lettered signatory sub-items and the
+  side-by-side signature blocks, and **conditions** for the letterhead
+  (`{#letterhead}` — the two headings + the line drawing), internet banking
+  (`{#internet_banking}`), single vs multiple signatory (`{#single_sig}` /
+  `{#multi_sig}`), and no-minute entities (`{#has_minute}` — Proprietorship is
+  application-only). MRL-style numbering is native Word numbering, so dropping
+  internet banking re-flows 1→2 with no gap.
+- `assets/js/bank-core.js` — pure logic: turns the form inputs + the shared
+  `data/entities.yaml` into the docxtemplater payload (operating-instruction wording,
+  single/multiple signatory, mandatory signatory, AD date formatting, signature rows).
+- `assets/js/bank.js` — the portal tool module (`PortalTools["bank-account"]`,
+  ids prefixed `bank-`). `partials/tool-bank.html` is the form.
+- Entity wording (minute title, noun, chair designation, member designations) is the
+  `bank:` block of each entity in `data/entities.yaml` (`verified: false` except
+  Company; NPO uses "organization" — confirm before verifying).
+
+```bash
+npm test          # audit (51) + bank (23) section-9 tests
+npm run bank-samples   # writes the three review samples to samples/
+```
+
+Known, deliberate difference from the bank reference: the purpose sentence uses the
+**meeting chair's designation** ("The Chairman informed…") per spec §4
+`{Chair designation}`, where the reference had the generic "The Chairperson informed…".
+Section-5 corrections (the "Name - Designation" space, the stray space in the address,
+and "are compulsory") are baked into the template.
+
 ## Local preview
 
 Any static server works, e.g.:

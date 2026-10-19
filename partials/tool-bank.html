@@ -1,17 +1,108 @@
-<!-- Bank Docs > Account Opening — placeholder until Stage 2. The compartment,
-     card and open/back pattern are in place now; the generator form and its logic
-     (ids prefixed bank-) will fill this pane in Stage 2. -->
-<div class="step-panel active" style="padding-top:8px;">
-  <span class="eyebrow">Bank Docs</span>
-  <h1 class="panel-title">Account Opening</h1>
-  <p class="panel-subtitle" style="font-family:var(--body);">Minutes of the meeting and the bank application letter, generated in your browser.</p>
-  <div class="section-card">
-    <div class="section-card-title"><span class="icon">🏦</span> Being built</div>
-    <p class="muted" style="font-size:.95rem;line-height:1.6;">
-      This generator is built in <strong>Stage&nbsp;2</strong>. It will produce one Word file with the
-      meeting minutes and the bank account-opening application letter — members, authorised
-      signatories, operating instruction, letterhead and internet-banking options — using the
-      firm&rsquo;s reference template, the same way the Audit Letters tool does.
-    </p>
+<!-- Bank Docs > Account Opening — tool markup (ids/names prefixed bank-). Logic in
+     assets/js/bank.js. Rendered inside the Bank Docs compartment by the portal. -->
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">Bank Docs</span>
+    <h1 class="panel-title">Account Opening</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Fill in the meeting once and download a Word file with the minutes and the bank account-opening application letter. Everything is generated in your browser — nothing is sent or stored.</p>
+
+    <div class="banner" id="bank-verifyBanner" hidden>Vocabulary not yet verified: the wording for this entity type is still draft (<code>verified: false</code> in data/entities.yaml). Check the output before sending.</div>
+
+    <form id="bank-form" autocomplete="off">
+      <!-- Entity -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Entity</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Entity type <span class="required">*</span></label><select id="bank-entityType"></select></div>
+          <div class="field-group"><label>Letterhead</label>
+            <div class="radios">
+              <label><input type="radio" name="bank-letterhead" value="yes" checked> Include letterhead</label>
+              <label><input type="radio" name="bank-letterhead" value="no"> No letterhead required</label>
+            </div>
+          </div>
+          <div class="field-group full"><label>Entity name <span class="required">*</span><span class="hint">Full legal name</span></label><input id="bank-entityName" placeholder="e.g. Himal Traders Private Limited"></div>
+          <div class="field-group full"><label>Entity address <span class="hint">Used in the letterhead and as the default meeting location</span></label><input id="bank-entityAddress" placeholder="e.g. Kathmandu-10, Kathmandu"></div>
+        </div>
+      </div>
+
+      <!-- Meeting -->
+      <div class="section-card" id="bank-meetingCard">
+        <div class="section-card-title"><span class="icon">📅</span> Meeting</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Meeting date (AD) <span class="required">*</span></label>
+            <div class="bs-date"><input id="bank-mY" type="number" placeholder="Year" value="2026"><select id="bank-mM"></select><input id="bank-mD" type="number" min="1" max="31" placeholder="Day"></div>
+          </div>
+          <div class="field-group"><label>Time</label><input id="bank-mTime" placeholder="11:00 AM"></div>
+          <div class="field-group full"><label>Location <span class="hint">Defaults to the entity address</span></label><input id="bank-mLocation" placeholder="e.g. Kathmandu-10, Kathmandu"></div>
+        </div>
+      </div>
+
+      <!-- Members -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">👥</span> Members</div>
+        <p class="muted" style="margin-bottom:14px;">Add everyone who attends. Tick who is an authorised signatory, who chairs the meeting, and who signs the letter.</p>
+        <div id="bank-members"></div>
+        <button type="button" class="add-director-btn" id="bank-addMember"><span>+</span> Add member</button>
+      </div>
+
+      <!-- Other (non-member) signatories -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🖊️</span> Other signatories <span class="hint" style="font-weight:400;text-transform:none;letter-spacing:0;">(not on the member list)</span></div>
+        <div id="bank-others"></div>
+        <button type="button" class="add-director-btn" id="bank-addOther"><span>+</span> Add other signatory</button>
+      </div>
+
+      <!-- Operating instruction -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">⚖️</span> How the account is operated</div>
+        <div class="field-grid">
+          <div class="field-group full" id="bank-opGroup">
+            <label>Operating instruction <span class="hint">shown when there are 2 or more signatories</span></label>
+            <div class="radios">
+              <label><input type="radio" name="bank-op" value="any_one"> Any one singly</label>
+              <label><input type="radio" name="bank-op" value="any_two" checked> Any two jointly</label>
+              <label><input type="radio" name="bank-op" value="all"> All jointly</label>
+              <label><input type="radio" name="bank-op" value="custom"> Custom</label>
+            </div>
+            <input id="bank-opCustom" placeholder="Custom operating instruction" hidden style="margin-top:8px;">
+          </div>
+          <div class="field-group"><label>Mandatory signatory <span class="hint">optional — always required to sign</span></label><select id="bank-mandatory"><option value="">None</option></select></div>
+        </div>
+      </div>
+
+      <!-- Bank -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏦</span> Bank</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Bank name <span class="required">*</span></label><input id="bank-bankName" placeholder="e.g. XYZ Bank Limited"></div>
+          <div class="field-group"><label>Branch address <span class="required">*</span></label><input id="bank-branch" placeholder="e.g. New Road, Kathmandu"></div>
+          <div class="field-group"><label>Account type</label><select id="bank-accountType"><option>Current</option><option>Savings</option><option>Call</option><option>Fixed Deposit</option></select></div>
+          <div class="field-group"><label>Currency</label><select id="bank-currency"><option>NPR</option><option>USD</option><option>Other</option></select></div>
+          <div class="field-group full"><label>Internet &amp; SMS banking</label>
+            <div class="radios">
+              <label><input type="radio" name="bank-internet" value="yes" checked> Yes</label>
+              <label><input type="radio" name="bank-internet" value="no"> No</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Application -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📨</span> Application letter</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Application date (AD) <span class="hint">defaults to the meeting date</span></label>
+            <div class="bs-date"><input id="bank-aY" type="number" placeholder="Year"><select id="bank-aM"></select><input id="bank-aD" type="number" min="1" max="31" placeholder="Day"></div>
+          </div>
+        </div>
+        <div class="field-group full"><div class="radios"><label><input type="checkbox" id="bank-highlight"> Highlight filled values for review (yellow)</label></div></div>
+      </div>
+
+      <div class="msgs" id="bank-msgs"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="bank-generate">Download Word file <span class="arr">↓</span></button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+    </form>
   </div>
-</div>
+</main>

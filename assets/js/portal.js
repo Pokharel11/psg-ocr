@@ -31,7 +31,14 @@
       "assets/js/audit-letters-render.js",
       "assets/js/audit-letters.js?v=" + V
     ],
-    "bank-account": [] // built in Stage 2
+    "bank-account": [
+      "assets/js/js-yaml.min.js",
+      "assets/js/pizzip.min.js",
+      "assets/js/docxtemplater.min.js",
+      "assets/js/common/docx-engine.js",
+      "assets/js/bank-core.js",
+      "assets/js/bank.js?v=" + V
+    ]
   };
 
   var LS_KEY = "psgocr.compartment";
