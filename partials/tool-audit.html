@@ -1,0 +1,150 @@
+<!-- Audit Letters — tool markup (ids/names prefixed audit-). Generated from the
+     original audit-letters.html; logic in assets/js/audit-letters.js. Rendered
+     inside the Audit Docs compartment by the portal. -->
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">Audit Letters</span>
+    <h1 class="panel-title">Audit Letter Generator</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Fill in the engagement once and download a Word file with the appointment letter, the statutory audit engagement letter and the management representation letter. Everything is generated in your browser — nothing is sent or stored.</p>
+
+    <div class="banner" id="audit-verifyBanner" hidden>Vocabulary not yet verified: the entity-type and framework wording is still draft (<code>verified: false</code> in audit-letters.yaml). Check the output before sending.</div>
+
+    <form id="audit-alForm" autocomplete="off">
+      <!-- Entity -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Entity</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Entity type <span class="required">*</span></label>
+            <select id="audit-entityType"></select>
+          </div>
+          <div class="field-group">
+            <label>Accounting framework <span class="required">*</span></label>
+            <select id="audit-framework"></select>
+          </div>
+          <div class="field-group full">
+            <label>Entity name <span class="required">*</span><span class="hint">Full legal name</span></label>
+            <input id="audit-entityName" placeholder="e.g. Himalaya Widgets Pvt. Ltd.">
+          </div>
+          <div class="field-group full">
+            <label>Entity address</label>
+            <input id="audit-entityAddress" value="Kathmandu, Nepal">
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatory -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">✍️</span> Signatory</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Signatory name <span class="required">*</span><span class="hint">Person signing for the client</span></label>
+            <input id="audit-signatoryName" placeholder="e.g. full name">
+          </div>
+          <div class="field-group">
+            <label>Signatory designation</label>
+            <input id="audit-signatoryDesignation" list="audit-designations" placeholder="Chairperson">
+            <datalist id="audit-designations">
+              <option>Chairperson</option><option>Managing Partner</option><option>Proprietor</option><option>Chairperson of NPO</option>
+            </datalist>
+          </div>
+        </div>
+      </div>
+
+      <!-- Engagement period & fee -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📆</span> Engagement Period &amp; Fee</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>From FY <span class="required">*</span></label>
+            <select id="audit-fromFY"></select>
+          </div>
+          <div class="field-group">
+            <label>To FY <span class="required">*</span></label>
+            <select id="audit-toFY"></select>
+          </div>
+          <div class="field-group full" id="audit-feeBasisGroup" hidden>
+            <label id="audit-feeBasisWrap">Fee basis</label>
+            <div class="radios" id="audit-feeBasisRadios">
+              <label><input type="radio" name="audit-feeBasis" value="total" checked> Total for all years</label>
+              <label><input type="radio" name="audit-feeBasis" value="peryear"> Per year</label>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Audit fee (Rs.) <span class="required">*</span></label>
+            <input id="audit-fee" type="number" min="0" step="0.01" placeholder="140000">
+            <div class="live" id="audit-feeWords"></div>
+          </div>
+          <div class="field-group">
+            <label>VAT</label>
+            <div class="radios">
+              <label><input type="radio" name="audit-vat" value="exclusive" checked> Exclusive of VAT</label>
+              <label><input type="radio" name="audit-vat" value="inclusive"> Inclusive of VAT</label>
+            </div>
+          </div>
+          <div class="field-group full">
+            <label>Number grouping</label>
+            <div class="radios">
+              <label><input type="radio" name="audit-grouping" value="international" checked> 140,000</label>
+              <label><input type="radio" name="audit-grouping" value="nepali"> 1,40,000</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📅</span> Dates (Bikram Sambat)</div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Appointment date <span class="required">*</span></label>
+            <div class="bs-date"><input id="audit-apY" type="number" placeholder="Year" value="2083"><select id="audit-apM"></select><input id="audit-apD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
+          <div class="field-group">
+            <label>Engagement date <span class="hint">Auto: appointment + 1 day (editable)</span></label>
+            <div class="bs-date"><input id="audit-enY" type="number" placeholder="Year"><select id="audit-enM"></select><input id="audit-enD" type="number" min="1" max="32" placeholder="Day"></div>
+            <div class="live" id="audit-engWarn"></div>
+          </div>
+          <div class="field-group">
+            <label>MRL date <span class="hint">After the last FY end</span></label>
+            <div class="bs-date"><input id="audit-mrlY" type="number" placeholder="Year" value="2083"><select id="audit-mrlM"></select><input id="audit-mrlD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auditor & firm -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📋</span> Auditor &amp; Firm</div>
+        <div class="field-grid">
+          <div class="field-group full">
+            <label>Auditor</label>
+            <select id="audit-auditorPick"></select>
+          </div>
+          <div class="field-group full">
+            <label>Auditor details <span class="hint">Title · name · designation</span></label>
+            <div class="bs-date" style="grid-template-columns:.7fr 1.8fr 1fr;"><input id="audit-auditorTitle" placeholder="Mr."><input id="audit-auditorName" placeholder="Auditor name"><input id="audit-auditorDesignation" placeholder="Partner"></div>
+          </div>
+          <div class="field-group">
+            <label>Audit firm</label>
+            <input id="audit-firmName" value="P.S.G. & Associates">
+          </div>
+          <div class="field-group">
+            <label>Firm city</label>
+            <input id="audit-firmCity" value="Kathmandu">
+          </div>
+          <div class="field-group full">
+            <div class="radios"><label><input type="checkbox" id="audit-highlight"> Highlight filled values for review (yellow)</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msgs" id="audit-msgs"></div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="audit-genCombined">Download Word file <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-outline" id="audit-genSeparate">Download three files</button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+    </form>
+  </div>
+</main>

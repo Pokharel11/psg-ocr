@@ -20,30 +20,56 @@ user's device and downloaded directly. (PDF: open the `.docx` in Word/Google Doc
 and "Save as PDF".)
 
 Files:
-- `app.html` — the OCR wizard UI (served via `index.php` after login)
-- `assets/js/app.js` — wizard logic + client-side document builder
+- `partials/tool-ocr.html` — the OCR wizard markup (ids prefixed `ocr-`), injected
+  into the portal. Generated from the old `app.html`; served via the portal only.
+- `assets/js/app.js` — wizard logic + client-side document builder (registers
+  `window.PortalTools.ocr`)
 - `assets/js/docx.min.js` — vendored `docx` browser build (used by the OCR wizard)
-- `assets/css/app.css` — the **shared** P.S.G. design system (indigo/brass). The OCR
-  wizard, the audit-letter tool and the chooser all link this one stylesheet.
+- `assets/css/app.css` — the **shared** P.S.G. design system (indigo/brass). Every
+  tool and the portal link this one stylesheet.
 
-## Login, the tool chooser and the shared header
+## The portal: three compartments, one page, no new URLs
 
-Every page is behind the staff login (the shared DRS `users` table). After signing
-in, staff land on a **chooser** (`home.php`) with two cards — OCR Automation and the
-Audit Letter Generator. Both tools share one header (`lib/ui.php` → `app_header()`,
-injected server-side into the static HTML) showing the P.S.G. brand, the signed-in
-user's name, a **Switch tool** link back to the chooser, and Log out.
+After login, staff see **one page** (the portal) with three compartments —
+**OCR Docs**, **Audit Docs**, **Bank Docs** — switched by the header tabs. Switching
+a compartment or opening a tool happens on the page with **no change of address**
+(no new URLs, paths or hash fragments). The last-used compartment is remembered in
+`localStorage` (wrapped in try/catch). Opening a tool shows it in place with a
+"Back to …" link; its half-filled form survives switching (panes are hidden, never
+destroyed). Each tool's heavy scripts load **only the first time it is opened**, then
+its `init()` runs once.
 
-Opening the original OCR URL (`/`) directly still goes **straight to OCR**, not the
-chooser: `require_login()` sends a `?next=` back to `login.php`, which returns the
-user to the page they asked for (validated against a local allow-list); a fresh
-login with no `next` shows the chooser.
+- `lib/ui.php` — `app_header()` (brand, compartment tabs, user, Log out) and
+  `render_portal($user, $default)` (assembles the compartments from the `partials/`
+  fragments and injects the header server-side).
+- `assets/js/portal.js` — the compartment/tool registry, tab switching, lazy script
+  loading + `init()`, and the `localStorage` memory.
+- `index.php` → portal opened to **OCR Docs**; `audit-letters.php` → **Audit Docs**;
+  `home.php` → the last-used compartment. All three serve the *same* portal, so the
+  existing URLs keep working exactly as before; only the default compartment differs
+  (set from `<body data-default-compartment>` — no hash).
+- `lib/auth.php` — login guard + `safe_next()`.
+- `partials/` — one markup fragment per tool (`tool-ocr.html`, `tool-audit.html`,
+  `tool-bank.html`); never served directly (`partials/.htaccess` denies it).
 
-- `home.php` — the chooser
-- `index.php` / `audit-letters.php` — gate + inject the shared header into
-  `app.html` / `audit-letters.html` via `serve_tool()`
-- `lib/ui.php` — `app_header()` and `serve_tool()`
-- `lib/auth.php` — login guard + `safe_next()`
+### Adding a new tool to a compartment
+
+Everything is a small registry, so a new tool (e.g. Bank Docs → "Statement Request")
+is **one module + one registry entry**, no layout change:
+
+1. **Markup** — add `partials/tool-<id>.html` with the tool's form. Prefix every
+   `id`/`name`/`for` with the tool's prefix (`ocr-`, `audit-`, `bank-`) so tools
+   never collide in the shared DOM. Scope any tool-specific CSS under the tool;
+   reuse the shared components (`.section-card`, `.field-grid`, `.btn`, …).
+2. **Module** — add `assets/js/<id>.js`. Do its setup in an `init()` and register it:
+   `window.PortalTools["<id>"] = { init: function () { /* fetch assets, build form */ } };`
+   (don't run on load — the portal calls `init()` on first open).
+3. **Compartment wiring** — in `lib/ui.php` add a `tool_card('<id>', …)` to the
+   compartment's cards and a `tool_pane('<id>', 'Back to …', tool_fragment('tool-<id>.html'))`.
+4. **Registry** — in `assets/js/portal.js` add `"<id>": [ …scripts in dependency order… ]`
+   to `SCRIPTS` (list every module the tool needs; the last one registers `PortalTools["<id>"]`).
+5. Bump the `$assets_v` / `V` version strings (in `lib/ui.php` and `portal.js`) so
+   browsers pick up the change.
 
 ## Deployment
 
@@ -81,18 +107,24 @@ matches the reference in font, spacing, margins, page breaks and styles:
   are stripped from the output.
 
 Files:
-- `audit-letters.html` / `assets/js/audit-letters.js` — form UI and wiring
-- `assets/js/audit-letters-core.js` — pure logic (dates, amount-in-words,
-  vocabulary). `templateData()` produces the docxtemplater payload;
-  `letterText()`/`generate()` produce the plain text the tests check. Shared with the tests.
-- `assets/js/audit-letters-render.js` — fills the template, strips highlights,
-  splits into three. Shared by the browser and the Node scripts.
-- `audit-letters.yaml` — **all** entity-type and framework wording and the 24 MRL
-  paragraphs, so a partner can edit the wording without touching code. `verified:
-  false` shows a "not yet verified" banner until a partner reviews it.
+- `partials/tool-audit.html` / `assets/js/audit-letters.js` — form markup (ids
+  prefixed `audit-`) and wiring (registers `window.PortalTools.audit`).
+- `assets/js/audit-letters-core.js` — pure logic. `templateData()` produces the
+  docxtemplater payload; `letterText()`/`generate()` produce the plain text the tests
+  check. Shared with the tests.
+- `audit-letters.yaml` — framework wording and the 24 MRL paragraphs (entity
+  vocabulary + partners now live in the **shared** `data/entities.yaml`; the loader
+  merges them in). `verified: false` shows a "not yet verified" banner.
 - `templates/audit-letter-template.docx` — the formatted template (deployed).
-- Vendored libraries: `assets/js/nepali-date.umd.js` (BS/AD calendar, same package
-  as the website compliance calendar), `assets/js/js-yaml.min.js`,
+
+Shared modules (used by Audit Docs, Bank Docs and their tests — the common engine):
+- `data/entities.yaml` — **the one entity data file both tools read**: entity
+  vocabulary (audit fields + a `bank:` block per entity) and the partner list.
+- `assets/js/common/psg-num.js` — ordinals, money grouping, amount in words.
+- `assets/js/common/psg-bsdate.js` — BS/AD date helpers (on `nepali-date-converter`).
+- `assets/js/common/docx-engine.js` — the docxtemplater fill / highlight-strip /
+  page-break split engine. `audit-letters-render.js` is a thin wrapper over it.
+- Vendored libraries: `assets/js/nepali-date.umd.js`, `assets/js/js-yaml.min.js`,
   `assets/js/pizzip.min.js`, `assets/js/docxtemplater.min.js`.
 
 Tests and sample generation are dev-only tooling (not deployed), run from this repo:
@@ -132,7 +164,7 @@ Two things here are **copies** of data that lives in the website repo
   `nepali-date-converter` build the website compliance calendar uses. If the
   website upgrades that package, re-copy the UMD build here so both sites use the
   same Ashad day-counts and BS↔AD mapping.
-- **Partner list** — the `partners:` block in `audit-letters.yaml` mirrors the
+- **Partner list** — the `partners:` block in `data/entities.yaml` mirrors the
   website's `_data/team.js` partners. When a partner is added, changed or removed
   there, update it here too (name without the "CA " prefix).
 

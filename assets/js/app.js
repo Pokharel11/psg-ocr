@@ -366,9 +366,9 @@
   function goTo(step) {
     document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.sidebar-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step-' + step).classList.add('active');
-    document.getElementById('nav-' + step).classList.add('active');
-    document.querySelectorAll('#m-steps .ms').forEach((el, i) => el.classList.toggle('active', i === step));
+    document.getElementById('ocr-step-' + step).classList.add('active');
+    document.getElementById('ocr-nav-' + step).classList.add('active');
+    document.querySelectorAll('#ocr-m-steps .ms').forEach((el, i) => el.classList.toggle('active', i === step));
     currentStep = step;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (step === 4) buildReview();
@@ -379,18 +379,18 @@
   function addDirector() {
     dirCount++;
     const idx = dirCount;
-    const container = document.getElementById('directors-container');
+    const container = document.getElementById('ocr-directors-container');
     const block = document.createElement('div');
     block.className = 'director-block';
-    block.id = 'dir-block-' + idx;
+    block.id = 'ocr-dir-block-' + idx;
     block.innerHTML =
       '<div class="director-block-title">Director ' + (directors.length + 1) + ' (संचालक ' + toNep(directors.length + 1) + ')</div>' +
       '<button class="remove-btn" onclick="removeDirector(' + idx + ')">✕</button>' +
       '<div class="field-grid">' +
         '<div class="field-group"><label>Director Name <span class="required">*</span><span class="hint">Full name in Nepali</span></label>' +
-        '<input type="text" class="np" id="dirName-' + idx + '" placeholder="श्री श्याम शर्मा" /></div>' +
+        '<input type="text" class="np" id="ocr-dirName-' + idx + '" placeholder="श्री श्याम शर्मा" /></div>' +
         '<div class="field-group"><label>Director Address <span class="required">*</span></label>' +
-        '<input type="text" class="np" id="dirAddr-' + idx + '" placeholder="का.जि.का.म.न.पा. वडा नं.९" /></div>' +
+        '<input type="text" class="np" id="ocr-dirAddr-' + idx + '" placeholder="का.जि.का.म.न.पा. वडा नं.९" /></div>' +
       '</div>';
     container.appendChild(block);
     directors.push(idx);
@@ -398,7 +398,7 @@
   window.addDirector = addDirector;
 
   function removeDirector(idx) {
-    const el = document.getElementById('dir-block-' + idx);
+    const el = document.getElementById('ocr-dir-block-' + idx);
     if (el) el.remove();
     directors = directors.filter(d => d !== idx);
     renumberDirectors();
@@ -407,24 +407,24 @@
 
   function renumberDirectors() {
     directors.forEach((idx, i) => {
-      const block = document.getElementById('dir-block-' + idx);
+      const block = document.getElementById('ocr-dir-block-' + idx);
       if (block) block.querySelector('.director-block-title').textContent = 'Director ' + (i + 1) + ' (संचालक ' + toNep(i + 1) + ')';
     });
   }
 
   function getDirectors() {
     return directors.map(idx => ({
-      name: (document.getElementById('dirName-' + idx)?.value || '').trim(),
-      addr: (document.getElementById('dirAddr-' + idx)?.value || '').trim()
+      name: (document.getElementById('ocr-dirName-' + idx)?.value || '').trim(),
+      addr: (document.getElementById('ocr-dirAddr-' + idx)?.value || '').trim()
     })).filter(d => d.name);
   }
 
   // ── AUDITOR TOGGLE ──
   function toggleAuditor() {
     auditorChangeEnabled = !auditorChangeEnabled;
-    document.getElementById('auditorToggle').classList.toggle('on', auditorChangeEnabled);
-    document.getElementById('auditorDatesSection').classList.toggle('visible', auditorChangeEnabled);
-    document.getElementById('prevAuditorCard').style.display = auditorChangeEnabled ? 'block' : 'none';
+    document.getElementById('ocr-auditorToggle').classList.toggle('on', auditorChangeEnabled);
+    document.getElementById('ocr-auditorDatesSection').classList.toggle('visible', auditorChangeEnabled);
+    document.getElementById('ocr-prevAuditorCard').style.display = auditorChangeEnabled ? 'block' : 'none';
   }
   window.toggleAuditor = toggleAuditor;
 
@@ -465,25 +465,25 @@
     return formatNepDate(y, m, d);
   }
   function autoSGM() {
-    const bod = document.getElementById('bodAuditorDate').value;
+    const bod = document.getElementById('ocr-bodAuditorDate').value;
     if (!bod) { alert('Please enter BOD Auditor Date first'); return; }
     const result = addNepDays(bod, 15);
-    document.getElementById('sgmDate').value = result;
-    document.getElementById('sgmHint').textContent = '✓ १५ दिन पछि: ' + result;
+    document.getElementById('ocr-sgmDate').value = result;
+    document.getElementById('ocr-sgmHint').textContent = '✓ १५ दिन पछि: ' + result;
   }
   window.autoSGM = autoSGM;
   function autoAGM() {
-    const bod = document.getElementById('bodDate').value;
+    const bod = document.getElementById('ocr-bodDate').value;
     if (!bod) { alert('Please enter BOD Meeting Date first'); return; }
     const result = addNepDays(bod, 21);
-    document.getElementById('agmDate').value = result;
-    document.getElementById('agmHint').textContent = '✓ २१ दिन पछि: ' + result;
+    document.getElementById('ocr-agmDate').value = result;
+    document.getElementById('ocr-agmHint').textContent = '✓ २१ दिन पछि: ' + result;
   }
   window.autoAGM = autoAGM;
 
   function calcCapital() {
-    const n = parseInt(document.getElementById('numShares').value) || 0;
-    if (n > 0) document.getElementById('authCapital').value = toNepaliAmount(n * 100);
+    const n = parseInt(document.getElementById('ocr-numShares').value) || 0;
+    if (n > 0) document.getElementById('ocr-authCapital').value = toNepaliAmount(n * 100);
   }
   window.calcCapital = calcCapital;
 
@@ -491,18 +491,18 @@
   function collectData() {
     const val = id => (document.getElementById(id).value || '').trim();
     return {
-      companyName: val('companyName'), companyAddress: val('companyAddress'), regNumber: val('regNumber'),
-      chairmanName: val('chairmanName'), chairmanAddr: val('chairmanAddr'),
+      companyName: val('ocr-companyName'), companyAddress: val('ocr-companyAddress'), regNumber: val('ocr-regNumber'),
+      chairmanName: val('ocr-chairmanName'), chairmanAddr: val('ocr-chairmanAddr'),
       directors: getDirectors(),
-      bodAuditorDate: val('bodAuditorDate'), sgmDate: val('sgmDate'), bodDate: val('bodDate'),
-      agmDate: val('agmDate'), appDate: val('appDate'),
-      fiscalYear: val('fiscalYear'), nextFiscalYear: val('nextFiscalYear'),
-      prevAuditorFirm: val('prevAuditorFirm'), prevAuditorName: val('prevAuditorName'),
-      curAuditorFirm: val('curAuditorFirm'), auditorName: val('auditorName'),
-      nextAuditorFirm: val('nextAuditorFirm'), nextAuditorName: val('nextAuditorName'),
-      numShares: val('numShares'), authCapital: val('authCapital'), issuedCapital: val('issuedCapital'),
-      paidUpCapital: val('paidUpCapital'), paidAmt: val('paidAmt'),
-      unpaidCapital: val('unpaidCapital') || 'छैन',
+      bodAuditorDate: val('ocr-bodAuditorDate'), sgmDate: val('ocr-sgmDate'), bodDate: val('ocr-bodDate'),
+      agmDate: val('ocr-agmDate'), appDate: val('ocr-appDate'),
+      fiscalYear: val('ocr-fiscalYear'), nextFiscalYear: val('ocr-nextFiscalYear'),
+      prevAuditorFirm: val('ocr-prevAuditorFirm'), prevAuditorName: val('ocr-prevAuditorName'),
+      curAuditorFirm: val('ocr-curAuditorFirm'), auditorName: val('ocr-auditorName'),
+      nextAuditorFirm: val('ocr-nextAuditorFirm'), nextAuditorName: val('ocr-nextAuditorName'),
+      numShares: val('ocr-numShares'), authCapital: val('ocr-authCapital'), issuedCapital: val('ocr-issuedCapital'),
+      paidUpCapital: val('ocr-paidUpCapital'), paidAmt: val('ocr-paidAmt'),
+      unpaidCapital: val('ocr-unpaidCapital') || 'छैन',
       auditorChange: auditorChangeEnabled,
     };
   }
@@ -523,7 +523,7 @@
       'Section 51 (Share, Debenture & Loan Register)',
     ].filter(Boolean);
 
-    document.getElementById('reviewContent').innerHTML =
+    document.getElementById('ocr-reviewContent').innerHTML =
       '<div class="review-grid">' +
         item('Company', d.companyName) + item('Registration', d.regNumber) +
         item('BOD Date', d.bodDate) + item('AGM Date', d.agmDate) +
@@ -532,7 +532,7 @@
       '<div class="doc-checklist"><div class="dc-head">Documents to be generated</div>' +
         docs.map(x => '<div class="doc-check-item"><span class="ck">✓</span> ' + escapeHtml(x) + '</div>').join('') +
       '</div>';
-    document.getElementById('generateSubText').textContent = docs.length + ' documents will be generated into one Word file.';
+    document.getElementById('ocr-generateSubText').textContent = docs.length + ' documents will be generated into one Word file.';
   }
   function item(label, value) {
     return '<div class="review-item"><div class="review-item-label">' + label + '</div><div class="review-item-value">' + escapeHtml(String(value || '—')) + '</div></div>';
@@ -547,11 +547,11 @@
       return;
     }
     hideError();
-    const btns = document.getElementById('generateBtns');
+    const btns = document.getElementById('ocr-generateBtns');
     btns.style.opacity = '0.4'; btns.style.pointerEvents = 'none';
-    document.getElementById('progressWrap').classList.add('visible');
-    document.getElementById('resultDownloads').classList.remove('visible');
-    document.getElementById('resultDownloads').innerHTML = '';
+    document.getElementById('ocr-progressWrap').classList.add('visible');
+    document.getElementById('ocr-resultDownloads').classList.remove('visible');
+    document.getElementById('ocr-resultDownloads').innerHTML = '';
 
     const steps = [
       'Preparing company data…', 'Building document structure…',
@@ -588,7 +588,7 @@
   window.generateDocs = generateDocs;
 
   function showResult(companyName) {
-    const c = document.getElementById('resultDownloads');
+    const c = document.getElementById('ocr-resultDownloads');
     c.classList.add('visible');
     c.innerHTML =
       '<a class="download-btn" id="reDownload" href="#" onclick="reDownload(event)">' +
@@ -609,10 +609,12 @@
   }
 
   function setProgress(pct, label) {
-    document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('progressLabel').textContent = label;
+    document.getElementById('ocr-progressBar').style.width = pct + '%';
+    document.getElementById('ocr-progressLabel').textContent = label;
   }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-  function showError(msg) { const e = document.getElementById('errMsg'); e.textContent = msg; e.classList.add('visible'); }
-  function hideError() { document.getElementById('errMsg').classList.remove('visible'); }
+  function showError(msg) { const e = document.getElementById('ocr-errMsg'); e.textContent = msg; e.classList.add('visible'); }
+  function hideError() { document.getElementById('ocr-errMsg').classList.remove('visible'); }
+  window.PortalTools = window.PortalTools || {};
+  window.PortalTools.ocr = { init: function () {} };
 })();

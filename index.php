@@ -1,7 +1,6 @@
 <?php
-/** Gate: require a valid DRS login, then serve the OCR generator UI.
- *  Opened directly (the original OCR bookmark), this goes straight to the
- *  OCR tool — not the chooser — with the shared header injected. */
+/** Gate: require a valid DRS login, then serve the staff portal opened to OCR Docs.
+ *  This is the original OCR bookmark (/), so it goes straight to the OCR compartment. */
 require_once __DIR__ . '/lib/ui.php';
 $u = require_login();
-serve_tool(__DIR__ . '/app.html', 'ocr', $u);
+render_portal($u, 'ocr-docs');

@@ -33,73 +33,11 @@ meta:
     - '15. MRL "...provided to staffs with are included" -> "...provided to staff are included" (drop stray "with")'
     - '16. MRL heading "OTHER MATTERS" -> "Other Matters"'
 
-# ---- Audit partners (mirror of the website repo _data/team; keep in sync) ----
-# `name` is without the "CA " prefix (the letters add it). `title` (Mr./Ms.) is a
-# default only and should be confirmed per letter in the form.
-partners:
-  - name: Gaurav Pokharel
-    title: "Mr."
-    designation: Partner
-  - name: Sujan Timalsina
-    title: "Mr."
-    designation: Partner
-
-# ---- Entity-type vocabulary (section 3) ----
-# Keys are the dropdown values. Every generic reference to the client uses these;
-# "company" is never hard-coded.
-entities:
-  Company:
-    noun: company
-    our_noun: company
-    default_designation: Chairperson
-    engagement_addressee: The Shareholders
-    owners: directors and shareholders
-    owners_short: directors
-    governance_body: board of directors
-    representation_givers: directors and management
-    representation_givers_short: directors
-    statute: "Companies Act, 2063"
-    statute_with_amendment: "Companies Act, 2063 (as amended)"
-    equity_statement: Statement of Changes in Equity
-  Partnership Firm:
-    noun: firm
-    our_noun: firm
-    default_designation: Managing Partner
-    engagement_addressee: The Partners
-    owners: partners
-    owners_short: partners
-    governance_body: partners
-    representation_givers: partners and management
-    representation_givers_short: partners
-    statute: "Partnership Act, 2020"
-    statute_with_amendment: "Partnership Act, 2020 (as amended)"
-    equity_statement: Statement of Changes in Partners' Capital
-  Proprietorship Firm:
-    noun: firm
-    our_noun: firm
-    default_designation: Proprietor
-    engagement_addressee: The Proprietor
-    owners: proprietor
-    owners_short: proprietor
-    governance_body: proprietor
-    representation_givers: proprietor and management
-    representation_givers_short: proprietor
-    statute: "Private Firm Registration Act, 2014"
-    statute_with_amendment: "Private Firm Registration Act, 2014 (as amended)"
-    equity_statement: Statement of Changes in Proprietor's Capital
-  NPO:
-    noun: entity
-    our_noun: entity
-    default_designation: Chairperson
-    engagement_addressee: The Executive Committee
-    owners: executive committee members and general members
-    owners_short: executive committee members
-    governance_body: executive committee
-    representation_givers: executive committee and management
-    representation_givers_short: executive committee
-    statute: "Association Registration Act, 2034 (and Social Welfare Act, 2049 where applicable)"
-    statute_with_amendment: "Association Registration Act, 2034 (as amended)"
-    equity_statement: Statement of Changes in Net Assets (Funds)
+# ---- Entity vocabulary + partners: moved to the SHARED file data/entities.yaml ----
+# Audit Docs and Bank Docs read the same entity data file. The loader merges
+# `entities` and `partners` from data/entities.yaml into these rules at runtime, so
+# the generator and tests still see rules.entities / rules.partners exactly as before.
+# Edit entity wording and the partner list in data/entities.yaml.
 
 # ---- Framework vocabulary (section 4) ----
 # statements: the financial statements listed in the engagement letter. The first

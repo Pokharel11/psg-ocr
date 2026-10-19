@@ -1,0 +1,106 @@
+# P.S.G. & Associates — shared entity vocabulary + partner list.
+#
+# Read by BOTH tools: Audit Docs (audit letters) and Bank Docs (account opening).
+# Keep ONE source of truth here so the two tools never drift. The top-level fields
+# on each entity are the AUDIT wording (unchanged from the old audit-letters.yaml);
+# the `bank:` block holds the Bank Docs wording (BANK_DOCS_SPEC.md section 6).
+#
+# Entity key ORDER must stay as below — the audit tool's dropdown and default read
+# from it. Partner list mirrors the website repo `_data/team` (keep in sync).
+
+partners:
+  - name: Gaurav Pokharel
+    title: "Mr."
+    designation: Partner
+  - name: Sujan Timalsina
+    title: "Mr."
+    designation: Partner
+
+entities:
+  Company:
+    # --- audit fields ---
+    noun: company
+    our_noun: company
+    default_designation: Chairperson
+    engagement_addressee: The Shareholders
+    owners: directors and shareholders
+    owners_short: directors
+    governance_body: board of directors
+    representation_givers: directors and management
+    representation_givers_short: directors
+    statute: "Companies Act, 2063"
+    statute_with_amendment: "Companies Act, 2063 (as amended)"
+    equity_statement: Statement of Changes in Equity
+    # --- bank fields (Account Opening) ---
+    bank:
+      verified: true
+      minute_title: MINUTES OF BOARD OF DIRECTORS
+      noun: company
+      noun_cap: Company
+      chair_designation: Chairman
+      member_designations: [Chairman, Managing Director, Director]
+
+  Partnership Firm:
+    noun: firm
+    our_noun: firm
+    default_designation: Managing Partner
+    engagement_addressee: The Partners
+    owners: partners
+    owners_short: partners
+    governance_body: partners
+    representation_givers: partners and management
+    representation_givers_short: partners
+    statute: "Partnership Act, 2020"
+    statute_with_amendment: "Partnership Act, 2020 (as amended)"
+    equity_statement: Statement of Changes in Partners' Capital
+    bank:
+      verified: false
+      minute_title: MINUTES OF PARTNERS' MEETING
+      noun: firm
+      noun_cap: Firm
+      chair_designation: Managing Partner
+      member_designations: [Managing Partner, Partner]
+
+  Proprietorship Firm:
+    noun: firm
+    our_noun: firm
+    default_designation: Proprietor
+    engagement_addressee: The Proprietor
+    owners: proprietor
+    owners_short: proprietor
+    governance_body: proprietor
+    representation_givers: proprietor and management
+    representation_givers_short: proprietor
+    statute: "Private Firm Registration Act, 2014"
+    statute_with_amendment: "Private Firm Registration Act, 2014 (as amended)"
+    equity_statement: Statement of Changes in Proprietor's Capital
+    bank:
+      verified: false
+      minute_title: null   # no minute; application letter only
+      noun: firm
+      noun_cap: Firm
+      chair_designation: Proprietor
+      member_designations: [Proprietor]
+
+  NPO:
+    noun: entity
+    our_noun: entity
+    default_designation: Chairperson
+    engagement_addressee: The Executive Committee
+    owners: executive committee members and general members
+    owners_short: executive committee members
+    governance_body: executive committee
+    representation_givers: executive committee and management
+    representation_givers_short: executive committee
+    statute: "Association Registration Act, 2034 (and Social Welfare Act, 2049 where applicable)"
+    statute_with_amendment: "Association Registration Act, 2034 (as amended)"
+    equity_statement: Statement of Changes in Net Assets (Funds)
+    bank:
+      verified: false
+      # The bank and the minute refer to the organization by name (BANK_DOCS_SPEC s.6);
+      # confirm this "organization" wording before setting verified: true.
+      minute_title: MINUTES OF EXECUTIVE COMMITTEE MEETING
+      noun: organization
+      noun_cap: Organization
+      chair_designation: Chairperson
+      member_designations: [Chairperson, Vice-Chairperson, Secretary, Treasurer, Member]

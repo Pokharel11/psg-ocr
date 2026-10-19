@@ -261,3 +261,53 @@ input.nepali-date, input.np{ font-family:var(--nep); }
 /* Sticky action bar at the foot of a single-page form */
 .actions{ position:sticky; bottom:0; margin-top:10px; padding:18px 0 22px;
   background:linear-gradient(transparent, var(--paper-2) 34%); display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+/* ============================================================================
+   STAFF PORTAL — three compartments (OCR / Audit / Bank) on one page.
+   ========================================================================== */
+
+/* Compartment tabs in the header */
+.compartments{ display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:0; overflow-x:auto; }
+.comp-tab{ font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--slate);
+  background:transparent; border:1px solid transparent; border-radius:100px; padding:8px 16px; cursor:pointer; white-space:nowrap; transition:all .18s; }
+.comp-tab:hover{ color:var(--ink); background:var(--cream); }
+.comp-tab.is-active{ color:var(--indigo); background:var(--paper); border-color:var(--line); box-shadow:var(--shadow-sm); }
+
+/* Portal body + compartments */
+.portal{ min-height:calc(100vh - 66px); }
+.compartment{ animation:fade .3s var(--ease); }
+.compartment[hidden]{ display:none; }
+.compartment-head{ max-width:980px; margin:0 auto; padding:clamp(28px,4vw,48px) clamp(20px,5vw,40px) 0; }
+.compartment-head .panel-subtitle{ margin-bottom:0; }
+
+/* Tool cards (clickable buttons that open a tool in place) */
+.tool-cards{ max-width:980px; margin:0 auto; padding:24px clamp(20px,5vw,40px) clamp(28px,5vw,56px);
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
+.tool-cards .tool-card{ width:100%; text-align:left; font:inherit; cursor:pointer; }
+.tool-card .tc-badge{ margin-top:auto; padding-top:6px; align-self:flex-start; font-family:var(--mono); font-size:.6rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--brass-deep); background:#fff7e6; border:1px solid #e9cf9a;
+  border-radius:100px; padding:4px 10px; }
+.tool-card.is-soon{ cursor:default; opacity:.9; }
+.tool-card.is-soon:hover{ transform:none; box-shadow:var(--shadow-sm); border-color:var(--line); }
+
+/* Opened tool pane (replaces the cards within the compartment) */
+.tool-pane[hidden]{ display:none; }
+.back-link{ display:inline-flex; align-items:center; gap:.5em; margin:clamp(14px,2vw,20px) 0 0 clamp(20px,5vw,40px);
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--indigo);
+  background:transparent; border:1px solid var(--line); border-radius:100px; padding:8px 14px; cursor:pointer; transition:all .18s; }
+.back-link:hover{ background:var(--cream); border-color:var(--indigo); }
+.back-link .arr{ transition:transform .2s var(--ease); }
+.back-link:hover .arr{ transform:translateX(-3px); }
+.tool-body{ margin-top:4px; }
+/* Tool fragments bring their own <main>/.layout; the portal just hosts them. */
+.tool-body > main{ margin-inline:auto; }
+
+@media (max-width:880px){
+  .appbar{ flex-wrap:wrap; gap:10px 12px; }
+  .brand{ order:1; }
+  .appbar-right{ order:2; margin-left:auto; }
+  .compartments{ order:3; flex:1 1 100%; width:100%; justify-content:flex-start; gap:8px;
+    padding-top:10px; border-top:1px solid var(--line-soft); overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .comp-tab{ flex:0 0 auto; }
+  .back-link{ margin-left:18px; }
+}

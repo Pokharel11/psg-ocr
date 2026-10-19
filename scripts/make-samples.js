@@ -12,6 +12,9 @@ const AuditRender = require("../assets/js/audit-letters-render.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const rules = yaml.load(fs.readFileSync(path.join(ROOT, "audit-letters.yaml"), "utf8"));
+const shared = yaml.load(fs.readFileSync(path.join(ROOT, "data", "entities.yaml"), "utf8"));
+rules.entities = shared.entities;
+rules.partners = shared.partners;
 const TEMPLATE = fs.readFileSync(path.join(ROOT, "templates", "audit-letter-template.docx"));
 const OUT = path.join(ROOT, "samples");
 fs.mkdirSync(OUT, { recursive: true });

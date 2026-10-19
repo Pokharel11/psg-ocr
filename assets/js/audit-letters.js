@@ -1,31 +1,42 @@
 /*
- * Audit letter generator - browser wiring. Loads audit-letters.yaml, fills the
- * form, validates (section 11) and builds the .docx in the browser via the shared
- * core (AuditCore) and renderer (AuditRender). Nothing is sent or stored.
+ * Audit Letters — tool module for the staff portal. Lazily initialised the first
+ * time the Audit Docs > Audit Letters tool is opened (portal calls .init()). Loads
+ * audit-letters.yaml + the shared data/entities.yaml + the .docx template, fills the
+ * form, validates (section 11) and builds the .docx via the shared core (AuditCore)
+ * and renderer (AuditRender). All element ids/names are prefixed "audit-". Nothing
+ * is sent or stored.
  */
 (function () {
   "use strict";
-  var $ = function (id) { return document.getElementById(id); };
+  var $ = function (id) { return document.getElementById("audit-" + id); };
   var RULES = null;
   var TEMPLATE = null; // reference-based .docx template (ArrayBuffer)
+  var started = false;
 
   function opt(sel, value, text) { var o = document.createElement("option"); o.value = value; o.textContent = text; sel.appendChild(o); }
   function monthOptions(sel) { AuditCore.BS_MONTHS.forEach(function (m, i) { opt(sel, i, m); }); }
   function val(id) { return $(id).value.trim(); }
-  function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : null; }
+  function radio(name) { var el = document.querySelector('input[name="audit-' + name + '"]:checked'); return el ? el.value : null; }
 
-  Promise.all([
-    fetch("audit-letters.yaml").then(function (r) { return r.text(); }),
-    fetch("templates/audit-letter-template.docx").then(function (r) { return r.arrayBuffer(); })
-  ]).then(function (res) {
-    RULES = jsyaml.load(res[0]);
-    TEMPLATE = res[1];
-    init();
-  }).catch(function () {
-    $("msgs").innerHTML = '<div class="msg-err">Could not load the letter template or wording file.</div>';
-  });
+  // Heavy assets (wording + shared entities + template) load only on first open.
+  function load() {
+    Promise.all([
+      fetch("audit-letters.yaml").then(function (r) { return r.text(); }),
+      fetch("data/entities.yaml").then(function (r) { return r.text(); }),
+      fetch("templates/audit-letter-template.docx").then(function (r) { return r.arrayBuffer(); })
+    ]).then(function (res) {
+      RULES = jsyaml.load(res[0]);
+      var shared = jsyaml.load(res[1]);
+      RULES.entities = shared.entities;   // entity vocabulary + partners live in the
+      RULES.partners = shared.partners;   // shared file (same one Bank Docs reads)
+      TEMPLATE = res[2];
+      build();
+    }).catch(function () {
+      $("msgs").innerHTML = '<div class="msg-err">Could not load the letter template or wording file.</div>';
+    });
+  }
 
-  function init() {
+  function build() {
     if (!RULES.meta || RULES.meta.verified !== true) $("verifyBanner").hidden = false;
 
     Object.keys(RULES.entities).forEach(function (k) { opt($("entityType"), k, k); });
@@ -43,7 +54,7 @@
     ["apY", "apM", "apD"].forEach(function (id) { $(id).addEventListener("input", autoEngagement); });
     ["fromFY", "toFY"].forEach(function (id) { $(id).addEventListener("change", onFY); });
     $("fee").addEventListener("input", liveFee);
-    document.querySelectorAll('input[name="grouping"]').forEach(function (el) { el.addEventListener("change", liveFee); });
+    document.querySelectorAll('input[name="audit-grouping"]').forEach(function (el) { el.addEventListener("change", liveFee); });
     $("genCombined").addEventListener("click", function () { generate(false); });
     $("genSeparate").addEventListener("click", function () { generate(true); });
     onFY();
@@ -141,4 +152,8 @@
       showMessages({ errors: ["Could not build the document: " + (e && e.message ? e.message : e)], warnings: [] });
     }
   }
+
+  // Register as a lazy portal tool: init() runs once, on first open.
+  window.PortalTools = window.PortalTools || {};
+  window.PortalTools.audit = { init: function () { if (started) return; started = true; load(); } };
 })();

@@ -9,9 +9,9 @@ DirectoryIndex index.php
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 </IfModule>
 
-# The UIs (app.html, audit-letters.html) are served only through their PHP gates
-# (index.php / audit-letters.php) after login; block direct access.
-<FilesMatch "^(app\.html|audit-letters\.html|config\.php|config\.sample\.php)$">
+# Tool markup now lives in partials/ and is injected server-side into the portal
+# after login (see partials/.htaccess). Block the config files from direct access.
+<FilesMatch "^(config\.php|config\.sample\.php)$">
   Require all denied
 </FilesMatch>
 

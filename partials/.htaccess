@@ -1,0 +1,3 @@
+# Tool markup fragments are injected server-side into the portal (lib/ui.php).
+# They are never served directly.
+Require all denied

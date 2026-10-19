@@ -10,22 +10,19 @@
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("nepali-date-converter"));
+    module.exports = factory(require("./common/psg-num"), require("./common/psg-bsdate"));
   } else {
-    root.AuditCore = factory(root.NepaliDate);
+    root.AuditCore = factory(root.PSGNum, root.PSGBSDate);
   }
-})(typeof self !== "undefined" ? self : this, function (ndModule) {
+})(typeof self !== "undefined" ? self : this, function (PSGNum, PSGBSDate) {
   "use strict";
 
-  var NepaliDate = ndModule.default || ndModule;
-  var CONFIG = ndModule.dateConfigMap;
-
-  // Display month names (section 5) and the library's config keys (for day counts).
-  var BS_MONTHS = ["Baisakh", "Jestha", "Ashad", "Shrawan", "Bhadra", "Ashoj", "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"];
-  var BS_CFG = ["Baisakh", "Jestha", "Asar", "Shrawan", "Bhadra", "Aswin", "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"];
-  var AD_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  var ASHAD = 2; // month index of Ashad (FY end month)
-  var DAY = 86400000;
+  // Shared helpers (assets/js/common/psg-num.js and psg-bsdate.js).
+  var ordinal = PSGNum.ordinal, formatMoney = PSGNum.formatMoney, amountInWords = PSGNum.amountInWords;
+  var BS_MONTHS = PSGBSDate.BS_MONTHS, AD_MONTHS = PSGBSDate.AD_MONTHS, DAY = PSGBSDate.DAY;
+  var bsMonthDays = PSGBSDate.bsMonthDays, bsToAdUTC = PSGBSDate.bsToAdUTC, adUTCtoBS = PSGBSDate.adUTCtoBS;
+  var formatBS = PSGBSDate.formatBS, formatAD = PSGBSDate.formatAD, addBSDays = PSGBSDate.addBSDays;
+  var fyEnd = PSGBSDate.fyEnd, fyShort = PSGBSDate.fyShort, fyLabel = PSGBSDate.fyLabel;
 
   // Values that count as "filled in" (highlighted in review mode), matching the reference.
   var FILL_KEYS = {
@@ -35,74 +32,8 @@
     vat_short: 1, vat_long: 1, signatory_name: 1, signatory_designation: 1, framework_full: 1,
   };
 
-  // ---- numbers ----
-  function ordinal(n) {
-    var s = ["th", "st", "nd", "rd"], v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  }
-  function groupIntl(intStr) { return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-  function groupNepali(intStr) {
-    if (intStr.length <= 3) return intStr;
-    var last3 = intStr.slice(-3), rest = intStr.slice(0, -3);
-    return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + last3;
-  }
-  function formatMoney(amount, decimals, grouping) {
-    var neg = amount < 0; amount = Math.abs(amount);
-    var fixed = amount.toFixed(decimals);
-    var parts = fixed.split(".");
-    var intPart = (grouping === "nepali" ? groupNepali : groupIntl)(parts[0]);
-    return (neg ? "-" : "") + intPart + (parts[1] ? "." + parts[1] : "");
-  }
-
-  var ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
-    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-  var TENS = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  function twoWords(n) {
-    if (n < 20) return ONES[n];
-    var t = TENS[Math.floor(n / 10)], o = n % 10;
-    return o ? t + " " + ONES[o] : t;
-  }
-  function threeWords(n) {
-    var h = Math.floor(n / 100), r = n % 100, out = [];
-    if (h) out.push(ONES[h] + " Hundred");
-    if (r) out.push(twoWords(r));
-    return out.join(" ");
-  }
-  // Nepali numbering (Thousand, Lakh, Crore, Arab), ending "Only"; paisa as "and Paisa NN".
-  function amountInWords(amount) {
-    var rupees = Math.floor(Math.abs(amount) + 1e-9);
-    var paisa = Math.round((Math.abs(amount) - rupees) * 100);
-    var parts = [];
-    var arab = Math.floor(rupees / 1000000000); rupees %= 1000000000;
-    var crore = Math.floor(rupees / 10000000); rupees %= 10000000;
-    var lakh = Math.floor(rupees / 100000); rupees %= 100000;
-    var thousand = Math.floor(rupees / 1000); rupees %= 1000;
-    if (arab) parts.push(twoWords(arab) + " Arab");
-    if (crore) parts.push(twoWords(crore) + " Crore");
-    if (lakh) parts.push(twoWords(lakh) + " Lakh");
-    if (thousand) parts.push(twoWords(thousand) + " Thousand");
-    if (rupees) parts.push(threeWords(rupees));
-    var words = parts.join(" ");
-    if (!words) words = "Zero";
-    if (paisa > 0) words += " and Paisa " + twoWords(paisa);
-    return words + " Only";
-  }
-
-  // ---- BS/AD dates ----
-  function bsMonthDays(y, m0) { var row = CONFIG[String(y)]; return row ? row[BS_CFG[m0]] : 32; }
-  function bsToAdUTC(y, m0, day) { var ad = new NepaliDate(y, m0, day).getAD(); return Date.UTC(ad.year, ad.month, ad.date); }
-  function adUTCtoBS(utc) { var d = new NepaliDate(new Date(utc + 12 * 3600000)); return { y: d.getYear(), m0: d.getMonth(), day: d.getDate() }; }
-  function formatBS(y, m0, day) { return ordinal(day) + " " + BS_MONTHS[m0] + ", " + y; }
-  function formatAD(utc) { var d = new Date(utc); return ordinal(d.getUTCDate()) + " " + AD_MONTHS[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
-  function addBSDays(y, m0, day, n) { return adUTCtoBS(bsToAdUTC(y, m0, day) + n * DAY); }
-
-  // FY start year -> its Ashad end {bs, adUTC}
-  function fyEnd(startYear) {
-    var endY = startYear + 1, day = bsMonthDays(endY, ASHAD);
-    return { y: endY, m0: ASHAD, day: day, adUTC: bsToAdUTC(endY, ASHAD, day) };
-  }
-  function fyShort(startYear) { return "FY " + startYear + "/" + String(startYear + 1).slice(-2); }
-  function fyLabel(fromY, toY) { return fromY === toY ? fyShort(fromY) : fyShort(fromY) + " to " + fyShort(toY); }
+  // Number helpers (ordinal, formatMoney, amountInWords) are in common/psg-num.js.
+  // BS/AD date helpers are in common/psg-bsdate.js. Both are aliased above.
 
   // ---- runs / placeholder resolution ----
   // ctx values are run-arrays. resolve() splices them into template literals.

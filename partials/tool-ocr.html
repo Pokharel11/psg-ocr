@@ -1,25 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OCR Document Generator · P.S.G. &amp; Associates</title>
-<meta name="description" content="Generate Nepali company-compliance documents (AGM/SGM minutes, Section 50/51/92, Beneficiary Owner detail) for the Office of the Company Registrar. By P.S.G. & Associates, Chartered Accountants.">
-<meta name="robots" content="noindex">
-<link rel="canonical" href="https://ocr.psgassociates.com.np/">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="/favicon.ico" sizes="32x32">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,500..700&family=Hanken+Grotesk:wght@300..600&family=Spline+Sans+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/app.css?v=2">
-</head>
-<body>
-
-<!--APPBAR-->
-
-<div class="m-steps" id="m-steps">
+<!-- OCR Document Generator — tool markup (ids prefixed ocr-). Generated from the
+     original app.html; logic in assets/js/app.js. Rendered inside the OCR Docs
+     compartment by the portal. -->
+<div class="m-steps" id="ocr-m-steps">
   <span class="ms active">1 · Company</span><span class="ms">2 · Directors</span><span class="ms">3 · Dates</span><span class="ms">4 · Audit</span><span class="ms">5 · Generate</span>
 </div>
 
@@ -27,14 +9,14 @@
   <nav class="sidebar">
     <div class="sidebar-label">Setup</div>
     <div class="steps">
-      <div class="sidebar-step active" onclick="goTo(0)" id="nav-0"><div class="step-num">1</div> Company Info</div>
-      <div class="sidebar-step" onclick="goTo(1)" id="nav-1"><div class="step-num">2</div> Board of Directors</div>
-      <div class="sidebar-step" onclick="goTo(2)" id="nav-2"><div class="step-num">3</div> Dates &amp; Calendar</div>
-      <div class="sidebar-step" onclick="goTo(3)" id="nav-3"><div class="step-num">4</div> Audit &amp; Capital</div>
+      <div class="sidebar-step active" onclick="goTo(0)" id="ocr-nav-0"><div class="step-num">1</div> Company Info</div>
+      <div class="sidebar-step" onclick="goTo(1)" id="ocr-nav-1"><div class="step-num">2</div> Board of Directors</div>
+      <div class="sidebar-step" onclick="goTo(2)" id="ocr-nav-2"><div class="step-num">3</div> Dates &amp; Calendar</div>
+      <div class="sidebar-step" onclick="goTo(3)" id="ocr-nav-3"><div class="step-num">4</div> Audit &amp; Capital</div>
     </div>
     <div class="sidebar-label" style="margin-top:14px;">Generate</div>
     <div class="steps">
-      <div class="sidebar-step" onclick="goTo(4)" id="nav-4"><div class="step-num">5</div> Review &amp; Generate</div>
+      <div class="sidebar-step" onclick="goTo(4)" id="ocr-nav-4"><div class="step-num">5</div> Review &amp; Generate</div>
     </div>
     <div class="sidebar-note">
       <b>Runs in your browser</b>
@@ -44,7 +26,7 @@
 
   <main>
     <!-- STEP 0 -->
-    <div class="step-panel active" id="step-0">
+    <div class="step-panel active" id="ocr-step-0">
       <span class="eyebrow">Step 1 of 5</span>
       <h2 class="panel-title">Company Information</h2>
       <p class="panel-subtitle">कम्पनीको आधारभूत जानकारी</p>
@@ -53,15 +35,15 @@
         <div class="field-grid">
           <div class="field-group full">
             <label>Company Name <span class="required">*</span><span class="hint nep">In Nepali (e.g. सफारी एड्भाइजर प्रा.लि.)</span></label>
-            <input type="text" class="np" id="companyName" placeholder="सफारी एड्भाइजर प्रा.लि." />
+            <input type="text" class="np" id="ocr-companyName" placeholder="सफारी एड्भाइजर प्रा.लि." />
           </div>
           <div class="field-group">
             <label>Company Address <span class="required">*</span><span class="hint">In Nepali</span></label>
-            <input type="text" class="np" id="companyAddress" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
+            <input type="text" class="np" id="ocr-companyAddress" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
           </div>
           <div class="field-group">
             <label>Registration Number <span class="required">*</span><span class="hint nep">दर्ता नं</span></label>
-            <input type="text" class="np" id="regNumber" placeholder="१२३४५६" />
+            <input type="text" class="np" id="ocr-regNumber" placeholder="१२३४५६" />
           </div>
         </div>
       </div>
@@ -69,7 +51,7 @@
     </div>
 
     <!-- STEP 1 -->
-    <div class="step-panel" id="step-1">
+    <div class="step-panel" id="ocr-step-1">
       <span class="eyebrow">Step 2 of 5</span>
       <h2 class="panel-title">Board of Directors</h2>
       <p class="panel-subtitle">संचालक समितिका सदस्यहरु</p>
@@ -78,21 +60,21 @@
         <div class="field-grid">
           <div class="field-group">
             <label>Chairman Name <span class="required">*</span><span class="hint">Full name in Nepali</span></label>
-            <input type="text" class="np" id="chairmanName" placeholder="श्री राम शर्मा" />
+            <input type="text" class="np" id="ocr-chairmanName" placeholder="श्री राम शर्मा" />
           </div>
           <div class="field-group">
             <label>Chairman Address <span class="required">*</span><span class="hint">In Nepali</span></label>
-            <input type="text" class="np" id="chairmanAddr" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
+            <input type="text" class="np" id="ocr-chairmanAddr" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
           </div>
         </div>
       </div>
-      <div id="directors-container"></div>
+      <div id="ocr-directors-container"></div>
       <button class="add-director-btn" onclick="addDirector()"><span>+</span> Add Director (संचालक थप्नुहोस्)</button>
       <div class="nav-row"><button class="btn btn-outline" onclick="goTo(0)">← Back</button><button class="btn btn-primary" onclick="goTo(2)">Next: Dates <span class="arr">→</span></button></div>
     </div>
 
     <!-- STEP 2 -->
-    <div class="step-panel" id="step-2">
+    <div class="step-panel" id="ocr-step-2">
       <span class="eyebrow">Step 3 of 5</span>
       <h2 class="panel-title">Dates &amp; Calendar</h2>
       <p class="panel-subtitle">मितिहरु — नेपाली पात्रो</p>
@@ -100,35 +82,35 @@
         <div class="section-card-title"><span class="icon">📅</span> Nepali Calendar Dates</div>
         <p class="np" style="font-size:.84rem;color:var(--slate);margin-bottom:20px;">सबै मिति नेपाली पात्रोमा लेख्नुहोस् — ढाँचा: २०८२/०९/२२</p>
         <div class="toggle-row" onclick="toggleAuditor()">
-          <div class="toggle" id="auditorToggle"></div>
+          <div class="toggle" id="ocr-auditorToggle"></div>
           <label>Auditor Change Required? (लेखापरीक्षक परिवर्तन आवश्यक छ?)</label>
         </div>
-        <div class="auditor-section" id="auditorDatesSection">
+        <div class="auditor-section" id="ocr-auditorDatesSection">
           <div class="field-grid">
             <div class="field-group">
               <label>SGM Call BOD Date <span class="required">*</span><span class="hint nep">Auditor change BOD मिति — २०८२/०९/२२</span></label>
-              <div class="date-row"><input type="text" class="nepali-date" id="bodAuditorDate" placeholder="२०८२/१०/२०" /></div>
+              <div class="date-row"><input type="text" class="nepali-date" id="ocr-bodAuditorDate" placeholder="२०८२/१०/२०" /></div>
             </div>
             <div class="field-group">
               <label>SGM Date <span class="required">*</span><span class="hint">Min 15 days after BOD date</span></label>
-              <div class="date-row"><input type="text" class="nepali-date" id="sgmDate" placeholder="२०८२/११/०८" /><button class="date-auto-btn" onclick="autoSGM()">Auto +15</button></div>
-              <div class="cal-tooltip" id="sgmHint"></div>
+              <div class="date-row"><input type="text" class="nepali-date" id="ocr-sgmDate" placeholder="२०८२/११/०८" /><button class="date-auto-btn" onclick="autoSGM()">Auto +15</button></div>
+              <div class="cal-tooltip" id="ocr-sgmHint"></div>
             </div>
           </div>
         </div>
         <div class="field-grid triple">
           <div class="field-group">
             <label>BOD Meeting Date <span class="required">*</span><span class="hint">AGM Call — २०८२/०८/०१</span></label>
-            <input type="text" class="nepali-date" id="bodDate" placeholder="२०८२/०८/०१" />
+            <input type="text" class="nepali-date" id="ocr-bodDate" placeholder="२०८२/०८/०१" />
           </div>
           <div class="field-group">
             <label>AGM Date <span class="required">*</span><span class="hint">Min 21 days after BOD</span></label>
-            <div class="date-row"><input type="text" class="nepali-date" id="agmDate" placeholder="२०८२/०८/२९" /><button class="date-auto-btn" onclick="autoAGM()">Auto +21</button></div>
-            <div class="cal-tooltip" id="agmHint"></div>
+            <div class="date-row"><input type="text" class="nepali-date" id="ocr-agmDate" placeholder="२०८२/०८/२९" /><button class="date-auto-btn" onclick="autoAGM()">Auto +21</button></div>
+            <div class="cal-tooltip" id="ocr-agmHint"></div>
           </div>
           <div class="field-group">
             <label>Application Date <span class="required">*</span><span class="hint">After AGM date</span></label>
-            <input type="text" class="nepali-date" id="appDate" placeholder="२०८२/०९/२९" />
+            <input type="text" class="nepali-date" id="ocr-appDate" placeholder="२०८२/०९/२९" />
           </div>
         </div>
       </div>
@@ -137,11 +119,11 @@
         <div class="field-grid">
           <div class="field-group">
             <label>Current Fiscal Year <span class="required">*</span><span class="hint">Format: २०८१/०८२</span></label>
-            <input type="text" class="nepali-date" id="fiscalYear" placeholder="२०८१/०८२" />
+            <input type="text" class="nepali-date" id="ocr-fiscalYear" placeholder="२०८१/०८२" />
           </div>
           <div class="field-group">
             <label>Next Fiscal Year <span class="required">*</span><span class="hint">Format: २०८२/०८३</span></label>
-            <input type="text" class="nepali-date" id="nextFiscalYear" placeholder="२०८२/०८३" />
+            <input type="text" class="nepali-date" id="ocr-nextFiscalYear" placeholder="२०८२/०८३" />
           </div>
         </div>
       </div>
@@ -149,72 +131,67 @@
     </div>
 
     <!-- STEP 3 -->
-    <div class="step-panel" id="step-3">
+    <div class="step-panel" id="ocr-step-3">
       <span class="eyebrow">Step 4 of 5</span>
       <h2 class="panel-title">Audit &amp; Capital</h2>
       <p class="panel-subtitle">लेखापरीक्षण र पूँजी विवरण</p>
-      <div class="section-card" id="prevAuditorCard" style="display:none">
+      <div class="section-card" id="ocr-prevAuditorCard" style="display:none">
         <div class="section-card-title"><span class="icon">🔄</span> Previous Auditor (SGM Change)</div>
         <div class="field-grid">
-          <div class="field-group"><label>Previous Audit Firm Name <span class="required">*</span></label><input type="text" class="np" id="prevAuditorFirm" placeholder="ए.बि.सी. एण्ड एसोसिएट्स" /></div>
-          <div class="field-group"><label>Previous Auditor Name <span class="required">*</span></label><input type="text" class="np" id="prevAuditorName" placeholder="श्री अशोक शर्मा" /></div>
+          <div class="field-group"><label>Previous Audit Firm Name <span class="required">*</span></label><input type="text" class="np" id="ocr-prevAuditorFirm" placeholder="ए.बि.सी. एण्ड एसोसिएट्स" /></div>
+          <div class="field-group"><label>Previous Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-prevAuditorName" placeholder="श्री अशोक शर्मा" /></div>
         </div>
       </div>
       <div class="section-card">
         <div class="section-card-title"><span class="icon">📋</span> Current Year Auditor</div>
         <div class="field-grid">
-          <div class="field-group"><label>Audit Firm Name <span class="required">*</span><span class="hint">This fiscal year</span></label><input type="text" class="np" id="curAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
-          <div class="field-group"><label>Auditor Name <span class="required">*</span></label><input type="text" class="np" id="auditorName" placeholder="श्री दिपक शर्मा" /></div>
+          <div class="field-group"><label>Audit Firm Name <span class="required">*</span><span class="hint">This fiscal year</span></label><input type="text" class="np" id="ocr-curAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
+          <div class="field-group"><label>Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-auditorName" placeholder="श्री दिपक शर्मा" /></div>
         </div>
       </div>
       <div class="section-card">
         <div class="section-card-title"><span class="icon">📋</span> Next Year Auditor</div>
         <div class="field-grid">
-          <div class="field-group"><label>Next Year Audit Firm <span class="required">*</span></label><input type="text" class="np" id="nextAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
-          <div class="field-group"><label>Next Year Auditor Name <span class="required">*</span></label><input type="text" class="np" id="nextAuditorName" placeholder="श्री दिपक शर्मा" /></div>
+          <div class="field-group"><label>Next Year Audit Firm <span class="required">*</span></label><input type="text" class="np" id="ocr-nextAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
+          <div class="field-group"><label>Next Year Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-nextAuditorName" placeholder="श्री दिपक शर्मा" /></div>
         </div>
       </div>
       <div class="section-card">
         <div class="section-card-title"><span class="icon">💰</span> Capital Details</div>
         <div class="field-grid triple">
-          <div class="field-group"><label>No. of Authorized Shares <span class="required">*</span><span class="hint">Number only</span></label><input type="number" id="numShares" placeholder="25000" oninput="calcCapital()" /></div>
-          <div class="field-group"><label>Authorized Capital (रु.) <span class="required">*</span><span class="hint">Auto = shares × 100</span></label><input type="text" class="np" id="authCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Issued Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="issuedCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Paid Up Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="paidUpCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Amount Paid (रु.) <span class="required">*</span></label><input type="text" class="np" id="paidAmt" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Unpaid Capital<span class="hint nep">Auto: छैन if 0</span></label><input type="text" class="np" id="unpaidCapital" placeholder="छैन" /></div>
+          <div class="field-group"><label>No. of Authorized Shares <span class="required">*</span><span class="hint">Number only</span></label><input type="number" id="ocr-numShares" placeholder="25000" oninput="calcCapital()" /></div>
+          <div class="field-group"><label>Authorized Capital (रु.) <span class="required">*</span><span class="hint">Auto = shares × 100</span></label><input type="text" class="np" id="ocr-authCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Issued Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-issuedCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Paid Up Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-paidUpCapital" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Amount Paid (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-paidAmt" placeholder="२५,००,०००" /></div>
+          <div class="field-group"><label>Unpaid Capital<span class="hint nep">Auto: छैन if 0</span></label><input type="text" class="np" id="ocr-unpaidCapital" placeholder="छैन" /></div>
         </div>
       </div>
       <div class="nav-row"><button class="btn btn-outline" onclick="goTo(2)">← Back</button><button class="btn btn-primary" onclick="goTo(4)">Next: Review <span class="arr">→</span></button></div>
     </div>
 
     <!-- STEP 4 -->
-    <div class="step-panel" id="step-4">
+    <div class="step-panel" id="ocr-step-4">
       <span class="eyebrow">Step 5 of 5</span>
       <h2 class="panel-title">Review &amp; Generate</h2>
       <p class="panel-subtitle">समीक्षा र कागजात निर्माण</p>
-      <div id="reviewContent"></div>
+      <div id="ocr-reviewContent"></div>
       <div class="generate-panel">
         <div class="generate-icon">📄</div>
         <div class="generate-title">Ready to Generate</div>
-        <div class="generate-sub" id="generateSubText">All documents will be prepared with your data.</div>
-        <div class="progress-bar-wrap" id="progressWrap">
-          <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
-          <div class="progress-label" id="progressLabel">Preparing…</div>
+        <div class="generate-sub" id="ocr-generateSubText">All documents will be prepared with your data.</div>
+        <div class="progress-bar-wrap" id="ocr-progressWrap">
+          <div class="progress-bar-bg"><div class="progress-bar" id="ocr-progressBar"></div></div>
+          <div class="progress-label" id="ocr-progressLabel">Preparing…</div>
         </div>
-        <div class="generate-btns" id="generateBtns">
+        <div class="generate-btns" id="ocr-generateBtns">
           <button class="btn btn-primary" onclick="generateDocs()">Generate Word Documents <span class="arr">↓</span></button>
         </div>
-        <div class="result-downloads" id="resultDownloads"></div>
-        <div class="err-msg" id="errMsg"></div>
+        <div class="result-downloads" id="ocr-resultDownloads"></div>
+        <div class="err-msg" id="ocr-errMsg"></div>
         <p class="pdf-note">Need a PDF? Open the downloaded <b>.docx</b> in Microsoft Word or Google Docs and choose <b>Save as / Download as PDF</b>.</p>
       </div>
       <div class="nav-row"><button class="btn btn-outline" onclick="goTo(3)">← Back</button><div></div></div>
     </div>
   </main>
 </div>
-
-<script src="assets/js/docx.min.js"></script>
-<script src="assets/js/app.js?v=1"></script>
-</body>
-</html>
