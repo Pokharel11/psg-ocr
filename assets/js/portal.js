@@ -36,8 +36,23 @@
       "assets/js/pizzip.min.js",
       "assets/js/docxtemplater.min.js",
       "assets/js/common/docx-engine.js",
+      "assets/js/common/bank-common.js",
+      "assets/js/common/bank-ui.js",
       "assets/js/bank-core.js",
       "assets/js/bank.js?v=" + V
+    ],
+    "bank-statement": [
+      "assets/js/js-yaml.min.js",
+      "assets/js/nepali-date.umd.js",
+      "assets/js/pizzip.min.js",
+      "assets/js/docxtemplater.min.js",
+      "assets/js/common/psg-num.js",
+      "assets/js/common/psg-bsdate.js",
+      "assets/js/common/docx-engine.js",
+      "assets/js/common/bank-common.js",
+      "assets/js/common/bank-ui.js",
+      "assets/js/bank-statement-core.js",
+      "assets/js/bank-statement.js?v=" + V
     ]
   };
 

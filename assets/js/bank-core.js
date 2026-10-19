@@ -7,19 +7,21 @@
  * UMD: window.BankCore in the browser, module.exports in Node.
  */
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.BankCore = factory();
-})(typeof self !== "undefined" ? self : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./common/bank-common"));
+  else root.BankCore = factory(root.BankCommon);
+})(typeof self !== "undefined" ? self : this, function (BankCommon) {
   "use strict";
 
-  var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
-    "August", "September", "October", "November", "December"];
-  function ordSuffix(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return (s[(v - 20) % 10] || s[v] || s[0]); }
-  function longAD(d) { return MONTHS[d.m - 1] + " " + d.d + ", " + d.y; }          // July 28, 2026
-  function monthYear(d) { return MONTHS[d.m - 1] + " " + d.y; }                    // July 2026
-  function adUTC(d) { return Date.UTC(d.y, d.m - 1, d.d); }
-  function hisHer(title) { return /^mr/i.test(String(title || "").trim()) ? "His" : "Her"; }
-  function titleName(p) { return ((p.title ? p.title + " " : "") + (p.name || "")).trim(); }
+  // Shared Bank Docs helpers (dates, signature block loop) live in bank-common.js.
+  var MONTHS = BankCommon.MONTHS;
+  var ordSuffix = BankCommon.ordSuffix;
+  var longAD = BankCommon.longAD;            // July 28, 2026
+  var monthYear = BankCommon.monthYear;      // July 2026
+  var adUTC = BankCommon.adUTC;
+  var hisHer = BankCommon.hisHer;
+  var titleName = BankCommon.titleName;
+  var group2 = BankCommon.group2;
+  var shortName = BankCommon.shortName;
 
   // Operating instruction sentence (section 4). sigs = authorized signatories.
   function operatingInstruction(inp, entity) {
@@ -48,18 +50,6 @@
       }
     }
     return core + tail;
-  }
-
-  function group2(list) {
-    var rows = [];
-    for (var i = 0; i < list.length; i += 2) {
-      var a = list[i], b = list[i + 1];
-      rows.push({
-        a_name: a.name, a_designation: a.designation,
-        has_b: !!b, b_name: b ? b.name : "", b_designation: b ? b.designation : "",
-      });
-    }
-    return rows;
   }
 
   function templateData(inp, entities) {
@@ -119,7 +109,6 @@
     return { errors: errors, warnings: warnings };
   }
 
-  function shortName(name) { return (name || "Entity").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 28) || "Entity"; }
   function fileTag(inp) { var d = inp.meetingDateAD; return shortName(inp.entityName) + "_" + MONTHS[d.m - 1] + "_" + d.d + "_" + d.y; }
 
   return { templateData: templateData, validate: validate, operatingInstruction: operatingInstruction, longAD: longAD, ordSuffix: ordSuffix, fileTag: fileTag, shortName: shortName };

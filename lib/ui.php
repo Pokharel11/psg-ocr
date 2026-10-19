@@ -104,10 +104,13 @@ function render_portal(array $user, string $default = ''): void {
     $audit = compartment('audit-docs', 'Audit Docs', 'Audit Documents',
         'Audit engagement paperwork, generated in your browser.', $auditCards, $auditPanes);
 
-    // Bank Docs — Account Opening is built in Stage 2; Statement Request comes later.
+    // Bank Docs — two tools: Account Opening and Statement Request.
     $bankCards = tool_card('bank-account', '🏦', 'Account Opening',
-        'Minutes and the bank application letter for opening a company / entity bank account.');
-    $bankPanes = tool_pane('bank-account', 'Back to Bank Docs', tool_fragment('tool-bank.html'));
+        'Minutes and the bank application letter for opening a company / entity bank account.')
+      . tool_card('bank-statement', '📄', 'Statement Request',
+        'Letter and minutes requesting bank account statements for a period.');
+    $bankPanes = tool_pane('bank-account', 'Back to Bank Docs', tool_fragment('tool-bank.html'))
+      . tool_pane('bank-statement', 'Back to Bank Docs', tool_fragment('tool-bank-statement.html'));
     $bank = compartment('bank-docs', 'Bank Docs', 'Bank Documents',
         'Bank account paperwork, generated in your browser.', $bankCards, $bankPanes);
 

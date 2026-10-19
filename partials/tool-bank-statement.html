@@ -1,0 +1,129 @@
+<!-- Bank Docs > Statement Request — tool markup (ids/names prefixed bank-st-). Logic
+     in assets/js/bank-statement.js. Rendered inside the Bank Docs compartment. -->
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">Bank Docs</span>
+    <h1 class="panel-title">Statement Request</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Fill in the meeting once and download a Word file with the bank statement-request letter and the minutes. Everything is generated in your browser — nothing is sent or stored.</p>
+
+    <div class="banner" id="bank-st-verifyBanner" hidden>Vocabulary not yet verified: the wording for this entity type is still draft (<code>verified: false</code> in data/entities.yaml). Check the output before sending.</div>
+
+    <div style="margin-bottom:14px;">
+      <button type="button" class="btn btn-ghost" id="bank-st-copy">⃪ Copy details from Account Opening</button>
+    </div>
+
+    <form id="bank-st-form" autocomplete="off">
+      <!-- Entity -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Entity</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Entity type <span class="required">*</span></label><select id="bank-st-entityType"></select></div>
+          <div class="field-group"><label>Letterhead</label>
+            <div class="radios">
+              <label><input type="radio" name="bank-st-letterhead" value="yes" checked> Include letterhead</label>
+              <label><input type="radio" name="bank-st-letterhead" value="no"> No letterhead required</label>
+            </div>
+          </div>
+          <div class="field-group full"><label>Entity name <span class="required">*</span><span class="hint">Full legal name</span></label><input id="bank-st-entityName" placeholder="e.g. Himal Traders Private Limited"></div>
+          <div class="field-group full"><label>Entity address <span class="hint">Used in the letterhead and the minute heading</span></label><input id="bank-st-entityAddress" placeholder="e.g. Kathmandu-10, Kathmandu"></div>
+        </div>
+      </div>
+
+      <!-- Bank -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏦</span> Bank</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Bank name <span class="required">*</span></label><input id="bank-st-bankName" placeholder="e.g. XYZ Bank Limited"></div>
+          <div class="field-group"><label>Bank address <span class="hint">line under the bank name in the letter</span></label><input id="bank-st-bankAddress" placeholder="e.g. Kathmandu, Nepal"></div>
+          <div class="field-group"><label>Branch name <span class="required">*</span></label><input id="bank-st-branch" placeholder="e.g. Kathmandu Branch"></div>
+        </div>
+      </div>
+
+      <!-- Accounts -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">#️⃣</span> Accounts</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Account name <span class="hint">defaults to the entity name; applies to all accounts</span></label><input id="bank-st-accountName" placeholder="(defaults to the entity name)"></div>
+        </div>
+        <div id="bank-st-accounts"></div>
+        <button type="button" class="add-director-btn" id="bank-st-addAccount"><span>+</span> Add account</button>
+      </div>
+
+      <!-- Period -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🗓️</span> Statement period</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Date system</label>
+            <div class="radios">
+              <label><input type="radio" name="bank-st-ds" value="AD" checked> AD (2025/07/17)</label>
+              <label><input type="radio" name="bank-st-ds" value="BS"> BS (2082/04/01)</label>
+            </div>
+          </div>
+          <div class="field-group"><label>From <span class="required">*</span></label>
+            <div class="bs-date"><input id="bank-st-fY" type="number" placeholder="Year"><input id="bank-st-fM" type="number" min="1" max="12" placeholder="Month"><input id="bank-st-fD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
+          <div class="field-group"><label>To <span class="required">*</span></label>
+            <div class="bs-date"><input id="bank-st-tY" type="number" placeholder="Year"><input id="bank-st-tM" type="number" min="1" max="12" placeholder="Month"><input id="bank-st-tD" type="number" min="1" max="32" placeholder="Day"></div>
+          </div>
+          <div class="field-group full"><label>Fill fiscal year <span class="hint">Shrawan 1 → last day of Ashadh, in the selected date system</span></label>
+            <div class="bs-date"><input id="bank-st-fy" type="number" placeholder="FY start year (e.g. 2082)"><button type="button" class="btn btn-ghost" id="bank-st-fillFY">Fill</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purpose -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🎯</span> Purpose</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Purpose of the statement</label>
+            <select id="bank-st-purpose">
+              <option value="internal accounting">Internal accounting</option>
+              <option value="statutory audit">Statutory audit</option>
+              <option value="income tax return">Income tax return</option>
+              <option value="loan or credit facility">Loan or credit facility</option>
+              <option value="custom">Custom…</option>
+            </select>
+            <input id="bank-st-purposeCustom" placeholder="Custom purpose" hidden style="margin-top:8px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Meeting -->
+      <div class="section-card" id="bank-st-meetingCard">
+        <div class="section-card-title"><span class="icon">📅</span> Meeting</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Meeting date (AD) <span class="required">*</span></label>
+            <div class="bs-date"><input id="bank-st-mY" type="number" placeholder="Year" value="2026"><select id="bank-st-mM"></select><input id="bank-st-mD" type="number" min="1" max="31" placeholder="Day"></div>
+          </div>
+          <div class="field-group"><label>Time</label><input id="bank-st-mTime" placeholder="9:00 AM"></div>
+        </div>
+      </div>
+
+      <!-- Members -->
+      <div class="section-card" id="bank-st-membersCard">
+        <div class="section-card-title"><span class="icon">👥</span> Members</div>
+        <p class="muted" style="margin-bottom:14px;">Add everyone who attends. Tick who is authorized to sign the application and collect the statement, and who chairs the meeting.</p>
+        <div id="bank-st-members"></div>
+        <button type="button" class="add-director-btn" id="bank-st-addMember"><span>+</span> Add member</button>
+        <div class="field-group full" style="margin-top:12px;"><div class="radios"><label><input type="checkbox" id="bank-st-allPresent" checked> All members present</label></div></div>
+      </div>
+
+      <!-- Letter -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📨</span> Letter</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Letter date (AD) <span class="hint">defaults to the meeting date</span></label>
+            <div class="bs-date"><input id="bank-st-lY" type="number" placeholder="Year"><select id="bank-st-lM"></select><input id="bank-st-lD" type="number" min="1" max="31" placeholder="Day"></div>
+          </div>
+        </div>
+        <div class="field-group full"><div class="radios"><label><input type="checkbox" id="bank-st-highlight"> Highlight filled values for review (yellow)</label></div></div>
+      </div>
+
+      <div class="msgs" id="bank-st-msgs"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="bank-st-generate">Download Word file <span class="arr">↓</span></button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+    </form>
+  </div>
+</main>

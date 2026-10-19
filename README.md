@@ -202,8 +202,51 @@ by filling a copy of the firm's reference template:
   Company; NPO uses "organization" — confirm before verifying).
 
 ```bash
-npm test          # audit (51) + bank (23) section-9 tests
-npm run bank-samples   # writes the three review samples to samples/
+npm test          # audit (51) + bank (23) + statement (29) tests
+npm run bank-samples   # writes the account-opening review samples to samples/
+```
+
+**Shared Bank Docs modules** (used by both Bank tools, so they never drift):
+- `assets/js/common/bank-common.js` — pure helpers: dates, `ordinalParts`,
+  `fmtYMD`, `group2` (the side-by-side signature-block loop), `shortName`.
+- `assets/js/common/bank-ui.js` — browser UI: the members editor (title / name /
+  designation + per-row toggles and the chair radio, mounted with a per-tool id
+  prefix), the entity dropdown and the designation datalist.
+- `data/entities.yaml` — one entity file for both tools: the `bank:` block drives
+  Account Opening, the `bank_statement:` block drives Statement Request.
+
+## Bank Docs — Statement Request
+
+Bank Docs > Statement Request produces one Word file with the **bank statement-request
+letter** and the **meeting minutes**, built from the firm's reference the same way:
+
+- `templates/bank-statement-template.docx` — built from the reference
+  (`docs/bank-docs/Bank_Statement_Request_Template_With_Letterhead.docx`) by
+  `scripts/build-bank-statement-template.js`: docxtemplater placeholders, **loops**
+  for accounts, attendance-table rows (`{#members}`) and the side-by-side signature
+  blocks, and **conditions** for the letterhead (`{#letterhead}` / `{^letterhead}` —
+  identical block to Account Opening, with three blank lines when off), single vs
+  multiple authorized persons (`{#sig_single}` / `{#sig_multi}`) and no-minute
+  entities (`{#has_minute}`). Paragraph spacing, the attendance table's widths and
+  borders, the bullet lists, the letterhead line and the page break are copied from
+  the reference untouched — only run text becomes tags.
+- `assets/js/bank-statement-core.js` — pure logic: plural wording (account/accounts,
+  statement/statements), the `Account No(s).` list, the authorization sentence, the
+  presence/quorum sentence, AD **or** BS period formatting with a `(B.S.)` suffix.
+- `assets/js/bank-statement.js` — the portal tool module
+  (`PortalTools["bank-statement"]`, ids prefixed `bank-st-`), including the
+  "Fill fiscal year" picker (Shrawan 1 → last day of Ashadh, via the shared BS
+  calendar) and the "Copy details from Account Opening" button.
+  `partials/tool-bank-statement.html` is the form.
+- Statement wording (minute title, attendance heading, meeting-of, office, members
+  word) is the `bank_statement:` block of each entity in `data/entities.yaml`
+  (`verified: false` except Company). The statement minute title keeps "THE"
+  ("MINUTES OF THE BOARD OF DIRECTORS"); Account Opening drops it — stored as
+  separate keys so each tool matches its own reference.
+
+```bash
+npm run statement-samples   # writes the statement review samples to samples/
+node scripts/build-bank-statement-template.js   # rebuild the template from the reference
 ```
 
 Known, deliberate difference from the bank reference: the purpose sentence uses the

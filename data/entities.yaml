@@ -39,6 +39,16 @@ entities:
       noun_cap: Company
       chair_designation: Chairman
       member_designations: [Chairman, Managing Director, Director]
+    # --- bank statement-request fields (Statement Request tool) ---
+    # Note: the statement minute title keeps "THE" ("MINUTES OF THE BOARD OF
+    # DIRECTORS"), matching its own reference; Account Opening above drops it.
+    bank_statement:
+      verified: true
+      minute_title: MINUTES OF THE BOARD OF DIRECTORS
+      present_word: Directors
+      meeting_of: the board of directors
+      office: the company’s office
+      members_word: board members
 
   Partnership Firm:
     noun: firm
@@ -60,6 +70,13 @@ entities:
       noun_cap: Firm
       chair_designation: Managing Partner
       member_designations: [Managing Partner, Partner]
+    bank_statement:
+      verified: false
+      minute_title: MINUTES OF THE PARTNERS' MEETING
+      present_word: Partners
+      meeting_of: the partners
+      office: the firm’s office
+      members_word: partners
 
   Proprietorship Firm:
     noun: firm
@@ -81,6 +98,13 @@ entities:
       noun_cap: Firm
       chair_designation: Proprietor
       member_designations: [Proprietor]
+    bank_statement:
+      verified: false
+      minute_title: null   # letter only, no minute
+      present_word: null
+      meeting_of: null
+      office: null
+      members_word: null
 
   NPO:
     noun: entity
@@ -104,3 +128,10 @@ entities:
       noun_cap: Organization
       chair_designation: Chairperson
       member_designations: [Chairperson, Vice-Chairperson, Secretary, Treasurer, Member]
+    bank_statement:
+      verified: false
+      minute_title: MINUTES OF THE EXECUTIVE COMMITTEE MEETING
+      present_word: Members
+      meeting_of: the executive committee
+      office: the organization’s office
+      members_word: committee members
