@@ -84,11 +84,28 @@
 
   // ── fiscal year dropdown (B4) ──
   function buildFY() {
+    // 2060/61 … 2089/90 — capped at BS 2090, the end of the shared calendar's range.
     var sel = $("fy"); sel.innerHTML = "";
-    for (var y = 2085; y >= 2078; y--) opt(sel, OCRCore.fyLabel(y), OCRCore.fyLabel(y));
+    for (var y = 2089; y >= 2060; y--) opt(sel, OCRCore.fyLabel(y), OCRCore.fyLabel(y));
     sel.value = OCRCore.fyLabel(2082);
     $("nextFy").value = OCRCore.fyNext(sel.value);
     sel.addEventListener("change", function () { $("nextFy").value = OCRCore.fyNext(sel.value); });
+  }
+
+  // Auditor firm selector (B): PSG auto-fills firm/address/partner/title/designation.
+  function setupFirmSelector(which) {
+    var fsel = $(which + "FirmSel"), psel = $(which + "Partner"), wrap = document.querySelector('[data-partnerwrap="' + which + '"]');
+    if (!fsel) return;
+    fsel.innerHTML = ""; opt(fsel, "psg", (W.firm && W.firm.name) || "पी.एस.जी. एण्ड एसोसिएट्स"); opt(fsel, "other", "Other firm");
+    psel.innerHTML = ""; (W.firm && W.firm.partners || []).forEach(function (p, i) { opt(psel, i, p.name); });
+    function applyPartner() { var p = (W.firm.partners || [])[+psel.value]; if (!p) return; $(which + "Name").value = p.name; $(which + "Title").value = p.title || "सी.ए."; $(which + "Desig").value = p.designation || "साझेदार"; }
+    function applyFirm() {
+      if (fsel.value === "psg") { $(which + "Firm").value = W.firm.name; $(which + "Addr").value = W.firm.address || ""; wrap.hidden = false; applyPartner(); }
+      else { wrap.hidden = true; }
+    }
+    fsel.addEventListener("change", applyFirm);
+    psel.addEventListener("change", applyPartner);
+    applyFirm(); // default PSG
   }
 
   // ── document choices (B8) ──
@@ -114,8 +131,9 @@
     var change = $("auditorChange").checked;
     var reasonPhrase = val("reasonCustom") || (($("reason").value) || "");
     var nextSame = $("nextSame").checked;
-    var cur = { name: val("curName"), firm: val("curFirm"), address: val("curAddr"), designation: $("curDesig").value };
-    var next = nextSame ? Object.assign({}, cur) : { name: val("nextName"), firm: val("nextFirm"), address: val("nextAddr"), designation: $("nextDesig").value };
+    var dTitle = (W.defaults && W.defaults.auditorTitle) || "सी.ए.";
+    var cur = { name: val("curName"), firm: val("curFirm"), address: val("curAddr"), designation: $("curDesig").value, title: val("curTitle") || dTitle };
+    var next = nextSame ? Object.assign({}, cur) : { name: val("nextName"), firm: val("nextFirm"), address: val("nextAddr"), designation: $("nextDesig").value, title: val("nextTitle") || dTitle };
     var feeOf = function (p) { var mode = $("fee" + p + "mode").value; return { mode: mode, amount: nepToAscii(val("fee" + p + "val")), vat: $("fee" + p + "vat").value }; };
     return {
       company: { name: val("companyName"), address: val("companyAddress"), reg: val("regNumber"), letterhead: radio("letterhead") === "yes" },
@@ -127,7 +145,7 @@
       fiscal: { current: $("fy").value, next: $("nextFy").value },
       auditorChange: change,
       reasonPhrase: reasonPhrase,
-      auditors: { prev: { name: val("prevName"), firm: val("prevFirm") }, cur: cur, next: next },
+      auditors: { prev: { name: val("prevName"), firm: val("prevFirm"), title: val("prevTitle") || dTitle }, cur: cur, next: next },
       capital: { numShares: nepToAscii(val("numShares")), faceValue: nepToAscii(val("faceValue")) || 100, authCapital: val("authCapital"), issued: val("issued"), paidUp: val("paidUp"), paidAmt: val("paidAmt") || val("paidUp"), unpaid: val("unpaid") || "छैन" },
       sec92: sec92Data(),
       sec51: { shareholdersChanged: $("shChanged").checked, loans: val("loans"), brokerage: val("brokerage"), forfeited: val("forfeited"), investments: val("investments") },
@@ -251,7 +269,7 @@
     $("reason").addEventListener("change", function () { $("reasonCustom").hidden = $("reason").value !== ""; });
     $("feeC1mode").addEventListener("change", function () { $("feeC1amt").hidden = $("feeC1mode").value !== "amount"; });
     $("feeC2mode").addEventListener("change", function () { $("feeC2amt").hidden = $("feeC2mode").value !== "amount"; });
-    $("ourFirmCur").addEventListener("click", function () { if (W.firm) { $("curFirm").value = W.firm.name; $("curName").value = (W.firm.partners || [])[0] || ""; $("curAddr").value = W.firm.address || ""; } });
+    setupFirmSelector("cur"); setupFirmSelector("next");
     ["numShares", "faceValue", "paidUp", "paidAmt"].forEach(function (id) { $(id).addEventListener("input", calcCapital); });
     $("save").addEventListener("click", saveClient);
     $("load").addEventListener("change", function (e) { if (e.target.files[0]) loadClient(e.target.files[0]); });

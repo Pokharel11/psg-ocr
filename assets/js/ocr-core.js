@@ -31,16 +31,17 @@
   function fmt(s, v) { return String(s == null ? "" : s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] != null ? v[k] : ""; }); }
 
   // ── Nepali amount in words (lakh/crore). New wording — verified:false. ──
+  // Full Nepali 1–99 word table (verified:false — pending partner confirmation).
   var ONES = ["", "एक", "दुई", "तीन", "चार", "पाँच", "छ", "सात", "आठ", "नौ", "दश",
     "एघार", "बाह्र", "तेह्र", "चौध", "पन्ध्र", "सोह्र", "सत्र", "अठार", "उन्नाइस", "बीस",
-    "एक्काइस", "बाइस", "तेइस", "चौबिस", "पच्चिस", "छब्बिस", "सत्ताइस", "अठ्ठाइस", "उनन्तिस", "तीस",
-    "एकतिस", "बत्तिस", "तेत्तिस", "चौँतिस", "पैँतिस", "छत्तिस", "सैँतिस", "अठतिस", "उनन्चालिस", "चालिस",
-    "एकचालिस", "बयालिस", "त्रिचालिस", "चवालिस", "पैँतालिस", "छयालिस", "सतचालिस", "अठचालिस", "उनन्चास", "पचास",
+    "एक्काइस", "बाइस", "तेइस", "चौबिस", "पच्चीस", "छब्बीस", "सत्ताइस", "अठ्ठाइस", "उनन्तीस", "तीस",
+    "एकतीस", "बत्तीस", "तेत्तीस", "चौँतीस", "पैँतीस", "छत्तीस", "सैँतीस", "अठतीस", "उनन्चालीस", "चालीस",
+    "एकचालीस", "बयालीस", "त्रिचालीस", "चवालीस", "पैंतालीस", "छयालीस", "सतचालीस", "अठचालीस", "उनन्चास", "पचास",
     "एकाउन्न", "बाउन्न", "त्रिपन्न", "चवन्न", "पचपन्न", "छपन्न", "सन्ताउन्न", "अन्ठाउन्न", "उनन्साठी", "साठी",
-    "एकसट्ठी", "बैसट्ठी", "त्रिसट्ठी", "चौंसट्ठी", "पैंसट्ठी", "छैसट्ठी", "सतसट्ठी", "अठसट्ठी", "उनन्सत्तरी", "सत्तरी",
+    "एकसट्ठी", "बयसट्ठी", "त्रिसट्ठी", "चौंसट्ठी", "पैंसट्ठी", "छयसट्ठी", "सतसट्ठी", "अठसट्ठी", "उनन्सत्तरी", "सत्तरी",
     "एकहत्तर", "बहत्तर", "त्रिहत्तर", "चौहत्तर", "पचहत्तर", "छयहत्तर", "सतहत्तर", "अठहत्तर", "उनासी", "असी",
     "एकासी", "बयासी", "त्रियासी", "चौरासी", "पचासी", "छयासी", "सतासी", "अठासी", "उनान्नब्बे", "नब्बे",
-    "एकान्नब्बे", "बयान्नब्बे", "त्रियान्नब्बे", "चौरान्नब्बे", "पन्चान्नब्बे", "छयान्नब्बे", "सन्तान्नब्बे", "अन्ठान्नब्बे", "उनन्सय"];
+    "एकानब्बे", "बयानब्बे", "त्रियानब्बे", "चौरानब्बे", "पन्चानब्बे", "छयानब्बे", "सन्तानब्बे", "अन्ठानब्बे", "उनान्सय"];
   function two(n) { return ONES[n] || ""; }
   function amountWordsNep(num) {
     num = parseInt(String(num).replace(/[^0-9]/g, ""), 10);
@@ -318,10 +319,11 @@
     var tmpl = fee.vat === "inclusive" ? W.letters.fee.inclusive : W.letters.fee.exclusive;
     return fmt(tmpl, { amount: groupNep(fee.amount), amountWords: amountWordsNep(fee.amount) });
   }
+  function titleOf(W, aud) { return (aud && aud.title) || (W.defaults && W.defaults.auditorTitle) || "सी.ए."; }
   function auditorLetterHead(data, W, auditor, dateStr) {
     var out = headerBlock(data, W);
     out.push(P(fmt(W.letters.dateLine, { date: dateStr }), { align: "right", before: 120, after: 160 }));
-    out.push(P("श्री " + auditor.name, { align: "left", after: 0 }));
+    out.push(P(titleOf(W, auditor) + " " + auditor.name, { align: "left", after: 0 }));
     out.push(P(auditor.firm, { align: "left", after: 0 }));
     out.push(P(W.letters.firmLine2, { align: "left", after: 0 }));
     out.push(P(auditor.address || "", { align: "left", after: 160 }));
@@ -341,7 +343,7 @@
     var L = W.letters.c2, ch = chair(data), out = auditorLetterHead(data, W, data.auditors.cur, data.dates.sgm);
     out.push(subHead(L.subject), P(W.labels.madhoday, { align: "left" }));
     out.push(P(fmt(L.body, { company: data.company.name, fy: data.fiscal.current, prevFirm: data.auditors.prev.firm,
-      prevAuditor: data.auditors.prev.name, reason: data.reasonPhrase, sgm: data.dates.sgm }), {}));
+      prevTitle: titleOf(W, data.auditors.prev), prevAuditor: data.auditors.prev.name, reason: data.reasonPhrase, sgm: data.dates.sgm }), {}));
     out.push(P(feeLine(W, data.fee && data.fee.c2), {}));
     out.push(P(L.close, {}));
     out.push(P(W.labels.bhabadiya, { align: "left", before: 120 }));
@@ -359,7 +361,7 @@
     out.push(subHead(L.subject), P(W.labels.madhoday, { align: "left" }));
     out.push(P(fmt(L.body, { letterDate: letterDate, fy: fy }), {}));
     out.push(P(W.labels.bhabadiya, { align: "left", before: 120 }));
-    out.push.apply(out, signature("सि.ए. " + aud.name, aud.designation || "साझेदार", aud.firm));
+    out.push.apply(out, signature(titleOf(W, aud) + " " + aud.name, aud.designation || "साझेदार", aud.firm));
     return out;
   }
 

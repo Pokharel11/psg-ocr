@@ -26,9 +26,9 @@ function base(over) {
     times: { sgmBod: "११.०० बजे", sgm: "११.०० बजे", agmBod: "दिउँसो १ बजे", agm: "बिहान १० बजे" },
     fiscal: { current: "२०८२/०८३", next: "२०८३/०८४" }, auditorChange: false, reasonPhrase: "कार्यव्यस्तताको कारण",
     auditors: {
-      prev: { name: "अशोक शर्मा", firm: "ए बी सी एण्ड एसोसिएट्स" },
-      cur: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार" },
-      next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार" },
+      prev: { name: "अशोक शर्मा", firm: "ए बी सी एण्ड एसोसिएट्स", title: "सी.ए." },
+      cur: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "सी.ए." },
+      next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "सी.ए." },
     },
     capital: { numShares: 25000, faceValue: 100, authCapital: "२५,००,०००", issued: "२५,००,०००", paidUp: "२५,००,०००", paidAmt: "२५,००,०००", unpaid: "छैन" },
     sec92: [], sec51: {}, quorumAllPresent: true, acceptance: { enabled: false }, fee: { c1: { mode: "agreement" }, c2: { mode: "amount", amount: 100000, vat: "exclusive" } },

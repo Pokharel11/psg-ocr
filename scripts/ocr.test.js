@@ -42,9 +42,9 @@ function base(over) {
     times: { sgmBod: "११.०० बजे", sgm: "११.०० बजे", agmBod: "दिउँसो १ बजे", agm: "बिहान १० बजे" },
     fiscal: { current: "२०८२/०८३", next: "२०८३/०८४" }, auditorChange: false, reasonPhrase: "कार्यव्यस्तताको कारण",
     auditors: {
-      prev: { name: "अशोक शर्मा", firm: "ए बी सी एण्ड एसोसिएट्स" },
-      cur: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार" },
-      next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार" },
+      prev: { name: "अशोक शर्मा", firm: "ए बी सी एण्ड एसोसिएट्स", title: "सी.ए." },
+      cur: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "सी.ए." },
+      next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "सी.ए." },
     },
     capital: { numShares: 25000, faceValue: 100, authCapital: "२५,००,०००", issued: "२५,००,०००", paidUp: "२५,००,०००", paidAmt: "२५,००,०००", unpaid: "छैन" },
     sec92: [], sec51: {}, quorumAllPresent: true, acceptance: { enabled: false }, fee: { c1: { mode: "agreement" }, c2: { mode: "amount", amount: 100000, vat: "exclusive" } },
@@ -54,7 +54,7 @@ function base(over) {
 
 const OLD = ["प्रस्तावबहरु", "गाणपुरक", "गणपुरक", "साधरण", "निर्णय न ", "लेखापरिक्षककोको", "आपिस सहमतिमा", "बिक्की",
   "शेयधनीहरु", "निम्नाअनुसार", "सर्बसम्मितबाट", "बिशेष", "जानकारि", "उपस्थिती", "पूँजि र", "लेखा परिक्षक", "लेखापरिक्षक",
-  "संचालक", "संचालन", "तपशिल", "डिवेन्चर", "बिषय", "सुचना", "बर्ष", "सवै", "ज्यु ", "ज्युले", "हरु "];
+  "संचालक", "संचालन", "तपशिल", "डिवेन्चर", "बिषय", "सुचना", "बर्ष", "सवै", "ज्यु ", "ज्युले", "हरु ", "सि.ए."];
 const NEW = ["प्रस्तावहरू", "गणपूरक", "साधारण", "निर्णय नं.", "लेखापरीक्षकको", "आपसी सहमतिमा", "बिक्री", "शेयरधनीहरू",
   "निम्नानुसार", "सर्वसम्मतिबाट", "विशेष", "जानकारी", "पूँजी", "लेखापरीक्षक", "सञ्चालक", "तपसिल", "डिबेञ्चर", "ज्यूले"];
 
@@ -72,7 +72,10 @@ const NEW = ["प्रस्तावहरू", "गणपूरक", "सा�
   const stillOld = OLD.filter(function (b) { return tOn.indexOf(b) !== -1; });
   ok("2. no old spellings remain", stillOld.length === 0, "still present: " + JSON.stringify(stillOld));
   // name-handling: no doubled honorifics
-  ok("1b. no 'श्री श्री' and no 'सि.ए. श्री'", tOn.indexOf("श्री श्री") === -1 && tOn.indexOf("सि.ए. श्री") === -1);
+  ok("1b. no doubled honorifics (श्री श्री / सी.ए. श्री / सि.ए. श्री)", tOn.indexOf("श्री श्री") === -1 && tOn.indexOf("सी.ए. श्री") === -1 && tOn.indexOf("सि.ए. श्री") === -1);
+  // auditor title (सी.ए.) used in the letters instead of श्री
+  ok("1c. letter recipient uses the title: 'सी.ए. दिपक शर्मा'", tOn.indexOf("सी.ए. दिपक शर्मा") !== -1);
+  ok("1c. C2 body previous auditor uses title: 'का सी.ए. अशोक शर्मा'", tOn.indexOf("का सी.ए. अशोक शर्मा") !== -1);
 
   // 3. §92 defaults छैन for all four items, every director; §51 defaults
   const only92 = base({ docsSelected: { sgmBod: false, sgm: false, bo: false, agmBod: false, agm: false, c1: false, c2: false, c3: false, app50: false, sec51: false } });
@@ -139,6 +142,31 @@ const NEW = ["प्रस्तावहरू", "गणपूरक", "सा�
   ok("9. choosing documents limits the set", selIds.length === 2 && selIds.indexOf("bo") !== -1 && selIds.indexOf("agm") !== -1);
   const sep = OCR.buildSeparate(base({ auditorChange: false }), W);
   ok("9. separate-files build returns one Document per selected doc", sep.length === OCR.documentList(base({ auditorChange: false }), W).length && sep.every(function (d) { return d.doc && d.id; }));
+
+  // 10. amount-in-words: full 1–99 table + composites
+  ok("10. ४५ = पैंतालीस", OCR.amountWordsNep(45) === "पैंतालीस", OCR.amountWordsNep(45));
+  ok("10. ७८ = अठहत्तर", OCR.amountWordsNep(78) === "अठहत्तर", OCR.amountWordsNep(78));
+  ok("10. ९९ = उनान्सय", OCR.amountWordsNep(99) === "उनान्सय", OCR.amountWordsNep(99));
+  ok("10. १,१५,५०० = एक लाख पन्ध्र हजार पाँच सय", OCR.amountWordsNep(115500) === "एक लाख पन्ध्र हजार पाँच सय", OCR.amountWordsNep(115500));
+  ok("10. १,२५,००,००० = एक करोड पच्चीस लाख", OCR.amountWordsNep(12500000) === "एक करोड पच्चीस लाख", OCR.amountWordsNep(12500000));
+
+  // 11. fiscal-year range 2060/61 … 2089/90; date math at both ends; outside throws
+  ok("11. FY labels at both ends", OCR.fyLabel(2060) === "२०६०/०६१" && OCR.fyLabel(2089) === "२०८९/०९०");
+  ok("11. date math works at 2060", /^२०६०\//.test(OCR.addDays("२०६०/०८/०१", 21)));
+  ok("11. date math works at 2089", /^२०८९\//.test(OCR.addDays("२०८९/०८/०१", 21)));
+  var threw90 = false; try { OCR.addDays("२०९१/०१/०१", 1); } catch (e) { threw90 = true; }
+  ok("11. year beyond the calendar (2091) throws", threw90);
+
+  // 12. PSG firm data present in the shared file
+  ok("12. shared firm data: PSG name + address + two partners", W.firm && W.firm.name === "पी.एस.जी. एण्ड एसोसिएट्स" && W.firm.address === "मध्य बानेश्वर, काठमाडौँ" && (W.firm.partners || []).length === 2 && W.firm.partners[0].name === "गौरव पोखरेल" && W.firm.partners[0].title === "सी.ए.");
+
+  // 13. defaults: a form at its defaults produces the default text
+  var dflt = base({ auditorChange: false, fee: { c1: { mode: "agreement" }, c2: { mode: "agreement" } } });
+  var tDflt = textOf(await xmlOf(dflt));
+  ok("13. default times render (बिहान १० बजे AGM, दिउँसो १ बजे AGM-call)", tDflt.indexOf("बिहान १० बजे") !== -1 && tDflt.indexOf("दिउँसो १ बजे") !== -1);
+  ok("13. default §51 answers (नभएको loans, छैन investments)", tDflt.indexOf("जमानत:- नभएको") !== -1 && tDflt.indexOf("लगानी गरेको रकम: छैन") !== -1);
+  ok("13. default fee by agreement (C1)", tDflt.indexOf("पारिश्रमिक आपसी सहमतिमा निर्धारण गरिनेछ") !== -1);
+  ok("13. default face value १०० (authorized = shares × 100)", tDflt.indexOf("प्रतिकित्ता रु. १००/-का दरले") !== -1);
 
   console.log("\n" + pass + " passed, " + fail + " failed.");
   process.exit(fail ? 1 : 0);
