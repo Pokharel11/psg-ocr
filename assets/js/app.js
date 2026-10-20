@@ -1,620 +1,272 @@
-/* P.S.G. & Associates - OCR Document Generator (client-side)
-   Builds the OCR compliance .docx entirely in the browser using the docx library.
-   No server: documents are generated on the device and downloaded directly. */
+/* P.S.G. & Associates — OCR Document Generator (portal tool module).
+   The form/UX layer. Documents are built by assets/js/ocr-core.js (OCRCore) from
+   the Nepali wording in data/ocr.yaml. Everything runs in the browser; nothing is
+   uploaded. All ids prefixed "ocr-". */
 (function () {
   "use strict";
+  var $ = function (id) { return document.getElementById("ocr-" + id); };
+  var W = null, started = false, step = 0;
+  var toNep = OCRCore.toNep, groupNep = OCRCore.groupNep;
 
-  const {
-    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-    AlignmentType, BorderStyle, WidthType, ShadingType, PageBreak
-  } = window.docx;
+  // ── small helpers ──
+  function nepDigits(s) { return String(s).replace(/[0-9]/g, function (d) { return "०१२३४५६७८९"[+d]; }); }
+  function val(id) { var e = $(id); return e ? e.value.trim() : ""; }
+  function radio(name) { var e = document.querySelector('input[name="ocr-' + name + '"]:checked'); return e ? e.value : null; }
+  function msg(box, errs, warns) {
+    $(box).innerHTML = (errs || []).map(function (x) { return '<div class="msg-err">' + x + "</div>"; })
+      .concat((warns || []).map(function (x) { return '<div class="msg-warn">' + x + "</div>"; })).join("");
+  }
+  function opt(sel, v, t) { var o = document.createElement("option"); o.value = v; o.textContent = t || v; sel.appendChild(o); }
 
-  // ── STATE ──
-  let currentStep = 0;
-  let directors = [];
-  let auditorChangeEnabled = false;
-  let dirCount = 0;
-  let lastBlob = null, lastFilename = "";
-
-  // ── NEPALI HELPERS ──
-  const nepNums = ['०','१','२','३','४','५','६','७','८','९'];
-  function toNep(n) { return String(n).split('').map(c => /[0-9]/.test(c) ? nepNums[+c] : c).join(''); }
-  window.toNepaliNum = toNep;
-  function toNepaliAmount(n) {
-    if (!n) return '';
-    const num = parseInt(n.toString().replace(/,/g, ''));
-    if (isNaN(num)) return n;
-    return toNep(num.toLocaleString('en-IN'));
+  function load() {
+    fetch("data/ocr.yaml").then(function (r) { return r.text(); }).then(function (txt) {
+      W = jsyaml.load(txt);
+      build();
+    }).catch(function () { msg("globalMsgs", ["Could not load the OCR wording file (data/ocr.yaml)."]); });
   }
 
-  // ── DOCX BUILDERS (ported from server.js) ──
-  const F = 'Mangal';
-  const bdr = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
-  const BORDERS = { top: bdr, bottom: bdr, left: bdr, right: bdr };
-  const NOBORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-  const NOBORDERS = { top: NOBORDER, bottom: NOBORDER, left: NOBORDER, right: NOBORDER };
-
-  function P(text, opts = {}) {
-    return new Paragraph({
-      alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      spacing: { before: opts.spaceBefore ?? 60, after: opts.spaceAfter ?? 60 },
-      children: [new TextRun({ text: text || '', bold: opts.bold || false, size: opts.size || 22,
-        font: F, underline: opts.underline ? {} : undefined })]
-    });
-  }
-  function PB() { return new Paragraph({ children: [new PageBreak()] }); }
-  function heading(text, sub) {
-    return new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 180, after: sub ? 60 : 120 },
-      children: [new TextRun({ text, bold: true, size: sub ? 24 : 28, font: F })]
-    });
-  }
-  function subHead(text) {
-    return new Paragraph({
-      spacing: { before: 160, after: 80 },
-      children: [new TextRun({ text, bold: true, size: 22, font: F, underline: {} })]
-    });
-  }
-  function TC(text, opts = {}) {
-    return new TableCell({
-      borders: opts.noBorder ? NOBORDERS : BORDERS,
-      width: { size: opts.w || 2000, type: WidthType.DXA },
-      shading: opts.header ? { fill: 'D5D5D5', type: ShadingType.CLEAR } : undefined,
-      margins: { top: 80, bottom: 80, left: 120, right: 120 },
-      verticalMerge: opts.vMerge,
-      children: [new Paragraph({
-        alignment: opts.center ? AlignmentType.CENTER : AlignmentType.LEFT,
-        children: [new TextRun({ text: text || '', bold: opts.header || opts.bold || false, size: 20, font: F })]
-      })]
-    });
-  }
-  function attendanceTable(allMembers) {
-    const rows = [
-      new TableRow({ children: [
-        TC('क्र.सं.', { w: 800, header: true, center: true }),
-        TC('नाम', { w: 3200, header: true }),
-        TC('पद', { w: 2000, header: true }),
-        TC('हस्ताक्षर', { w: 3200, header: true }),
-      ]}),
-      ...allMembers.map((m, i) => new TableRow({ children: [
-        TC(toNep(i + 1) + '.', { w: 800, center: true }),
-        TC(m.name, { w: 3200 }),
-        TC(m.role, { w: 2000 }),
-        TC('', { w: 3200 }),
-      ]}))
-    ];
-    return new Table({ width: { size: 9200, type: WidthType.DXA }, columnWidths: [800, 3200, 2000, 3200], rows });
-  }
-
-  function buildAllDocs(data) {
-    const { companyName, companyAddress, regNumber, chairmanName, chairmanAddr,
-      directors, bodAuditorDate, sgmDate, bodDate, agmDate, appDate,
-      fiscalYear, nextFiscalYear, prevAuditorFirm, prevAuditorName,
-      curAuditorFirm, auditorName, nextAuditorFirm, nextAuditorName,
-      numShares, authCapital, issuedCapital, paidUpCapital, paidAmt, unpaidCapital,
-      auditorChange } = data;
-
-    const allBOD = [
-      { name: chairmanName, addr: chairmanAddr, role: 'अध्यक्ष' },
-      ...directors.map(d => ({ name: d.name, addr: d.addr, role: 'संचालक' }))
-    ];
-
-    const children = [];
-
-    // DOC 1 & 2: SGM CALL + SGM MINUTE (only if auditor change)
-    if (auditorChange) {
-      children.push(
-        heading(companyName),
-        P('कम्पनी दर्ता नं: ' + regNumber, { center: true }),
-        P(''),
-        heading('सञ्चालक समितिको बैठक', true),
-        P(''),
-        P(companyName + ' को सञ्चालक समितिको बैठक ' + chairmanName + ' को अध्यक्षतामा, निम्न स्थान, मिति र समयमा, निम्न लिखित व्यक्तिहरुको उपस्थितिमा बसि देहायका विषयमा, देहायका निर्णयहरु पारित गरियो ।'),
-        P(''),
-        P('स्थान :     ' + companyAddress),
-        P('मिति :-     ' + bodAuditorDate),
-        P('समय :-     ११.०० बजे'),
-        P(''),
-        subHead('उपस्थिति'),
-        attendanceTable(allBOD),
-        P(''),
-        subHead('प्रस्तावबहरु'),
-        P('(१)   बिशेष साधारण सभा बोलाउने सम्बन्धमा ।'),
-        P('(२)   अन्य ।'),
-        P(''),
-        subHead('निर्णय न १'),
-        P('यस कम्पनीको बिशेष साधारण सभा मिति ' + sgmDate + ' गतेका दिन कम्पनीको कार्यालयमा बस्ने र सो साधारण सभामा तपसिल बिषयहरुमा छलफल गर्ने निर्णय सर्बसम्मितबाट पारित गरियो । साथै साधारण सभा बस्ने मिति, स्थान र समयका बारेमा कम्पनीका सम्पूर्ण शेयरहोल्डरहरुलाई सुचना गर्ने निर्णय गरियो ।'),
-        P('(१) लेखा परीक्षक परिवर्तन गर्ने ।'),
-        P('(२) अन्य ।'),
-        P(''),
-        subHead('निर्णय न २'),
-        P('अन्य बिषय नरहेकाले बैठक यत्तिमै सकियो ।'),
-      );
-      children.push(
-        PB(),
-        heading(companyName),
-        P('कम्पनी दर्ता नं: ' + regNumber, { center: true }),
-        P(''),
-        heading('विशेष साधारण सभाको बैठक', true),
-        P(''),
-        P(companyName + ' को विशेष साधारण सभाको बैठक ' + chairmanName + ' को अध्यक्षतामा, निम्न स्थान, मिति र समयमा, निम्न लिखित व्यक्तिहरुको उपस्थितिमा बसि देहायका विषयमा, देहायका निर्णयहरु पारित गरियो ।'),
-        P(''),
-        P('स्थान :     ' + companyAddress),
-        P('मिति :-     ' + sgmDate),
-        P('समय :-     ११.०० बजे'),
-        P(''),
-        subHead('उपस्थिति'),
-        attendanceTable(allBOD),
-        P(''),
-        subHead('प्रस्तावबहरु'),
-        P('(१) लेखा परीक्षक परिवर्तन गर्ने ।'),
-        P('(२) अन्य ।'),
-        P(''),
-        subHead('सभाको वैधानिकता'),
-        P('आजको यस सभा वैधानिक भए नभएको सम्बन्धमा छलफल गर्दा यस सभामा गाणपुरक संख्या पुगी सभा वैधानिक भएकोले अध्यक्ष ज्युले सभाको कारवाही अगाडि बढाउन निर्देशन दिनुभयो ।'),
-        P(''),
-        subHead('निर्णय न १'),
-        P('साधारण सभाले नियुक्त गरेको आ. व. ' + fiscalYear + ' को लेखा परिक्षक ' + prevAuditorFirm + ' का लेखापरिक्षक ' + prevAuditorName + ' को कार्यव्यस्तता भएको कारण विशेष साधारण सभाले लेखा परीक्षक परिवर्तन गरी लेखा परीक्षक ' + curAuditorFirm + ' का ' + auditorName + ' लाई लेखा परीक्षकको रुपमा नियुक्त गरेको छ ।'),
-        P(''),
-        subHead('निर्णय न २'),
-        P('अन्य बिषय नरहेकाले बैठक यत्तिमै सकियो ।'),
-      );
-    }
-
-    // DOC 3: BENEFICIARY OWNER DETAIL
-    children.push(
-      heading(companyName),
-      P(companyAddress, { center: true }),
-      P('कम्पनी दर्ता नं: ' + regNumber, { center: true }),
-      P(''),
-      heading('वास्तविक धनी (Beneficiary Owner) सम्बन्धी विवरण', true),
-      P('(कम्पनी ऐन, २०६३ तथा सम्पत्ति शुद्धीकरण (मनि ल्याण्डरिङ) निवारण ऐन, २०६४ को व्यवस्था अनुसार)', { center: true }),
-      P(''),
-      P('१) कम्पनीका कुन शेयरधनीको अन्य वास्तविक धनी नभएको भनी सो शेयरधनीले स्वघोषणा गरेको भएमा सो उल्लेख गर्नुहोस् (तल नं. २ भर्नु पर्दैन)'),
-      P('कम्पनीका कुनै शेयरधनीको अन्य वास्तविक धनी नभएको स्वघोषणा गर्दछु ।'),
-      P(''),
-      P('२) सम्बन्धित शेयरधनीले घोषणा गरेको अनुसार अन्य वास्तविक धनी भएमा शेयरधनीको विवरण:'),
-      new Table({
-        width: { size: 9200, type: WidthType.DXA },
-        columnWidths: [460, 1300, 1300, 1300, 1300, 1400, 1280, 860],
-        rows: [
-          new TableRow({ children: [
-            TC('क्र.सं.', { w: 460, header: true, center: true }),
-            TC('शेयरधनीको नाम', { w: 1300, header: true }),
-            TC('शेयरधनीको ठेगाना', { w: 1300, header: true }),
-            TC('वास्तविक धनीको नाम', { w: 1300, header: true }),
-            TC('वास्तविक धनीको ठेगाना', { w: 1300, header: true }),
-            TC('वास्तविक धनीको नागरिकता नं.', { w: 1400, header: true }),
-            TC('धारण गरेको शेयर प्रतिशत', { w: 1280, header: true }),
-            TC('कैफियत', { w: 860, header: true }),
-          ]}),
-          new TableRow({ children: [
-            TC('', { w: 460 }), TC('', { w: 1300 }), TC('', { w: 1300 }), TC('', { w: 1300 }),
-            TC('', { w: 1300 }), TC('', { w: 1400 }), TC('', { w: 1280 }), TC('', { w: 860 }),
-          ]}),
-        ]
-      }),
-      P('नोट: कुनै शेयरधनीको एकभन्दा बढी वास्तविक धनी भएमा क्रमशः उल्लेख गर्ने ।'),
-      P(''), P(''), P(''), P(''),
-      P('.....................................'),
-      P(chairmanName),
-      P('अध्यक्ष'),
-      P(companyName),
-    );
-
-    // DOC 4: AGM CALL MINUTE
-    children.push(
-      PB(),
-      heading(companyName + ' को'),
-      heading('संचालक समितिको निर्णय', true),
-      P(''),
-      P('आज मिति ' + bodDate + ' गते दिउँसो १ बजे यस कम्पनीको संचालक समितिको बैठक यस कम्पनीका अध्यक्ष ' + chairmanName + ' को अध्यक्षतामा बैठक बसि तपशिल बमोजिमको महानुभावको उपस्थितिमा निम्नाअनुसारको निर्णय गरियो ।'),
-      P(''),
-      subHead('उपस्थिति :'),
-      attendanceTable(allBOD),
-      P(''),
-      subHead('छलफलका प्रस्तावहरु'),
-      P('१. वार्षिक साधरण सभा बोलाउने सम्बन्धमा ।'),
-      P('२. विविध ।'),
-      P(''),
-      subHead('निर्णयहरु'),
-      subHead('निर्णय नं. १ वार्षिक साधरण सभा बोलाउने सम्बन्धमा:'),
-      P('प्रस्ताव नं.१ माथि छलफल गर्दा यस कम्पनीको साधरण सभा मिति ' + agmDate + ' गतेका दिन कम्पनीको रजिष्टर्ड कार्यालयमा बिहान १० बजे र सो सभामा तपशिल बमोजिमको विषयहरुमा छलफल गर्ने निर्णय सर्वसम्मति बाट गरियो ।'),
-      P(''),
-      subHead('तपशिल'),
-      P('क) संचालक समितीको वार्षिक प्रतिवेदन उपर छलफल गर्ने सम्बन्धमा ।'),
-      P('ख) आ.व. ' + fiscalYear + ' को वार्षिक लेखा परिक्षण प्रतिवेदन एवं नाफा नोक्सान हिसाब, वासलात आदि माथि छलफल सम्बन्धमा ।'),
-      P('ग) आ.व. ' + nextFiscalYear + ' को लागि लेखा परिक्षक नियुक्ति गर्ने सम्बन्धमा ।'),
-      P('घ) विविध'),
-      P(''),
-      subHead('निर्णय नं.२. विविधः'),
-      P('प्रस्ताव नं. २ माथि छलफल गर्दा विषयहरु उपर छलफल गरि निर्णय गर्न बाँकी विषयहरु नभएकोले उपस्थित सवै महानुभावहरुलाई धन्यवाद प्रदान गर्दै सभाका अध्यक्ष ज्युले यस कम्पनीको संचालक समितिको बैठकको विसर्जन भएको घोषणा गर्नु भयो ।'),
-    );
-
-    // DOC 5: AGM MINUTE
-    children.push(
-      PB(),
-      heading(companyName + ' को'),
-      heading('वार्षिक साधरण सभाको निर्णय', true),
-      P(''),
-      P('आज मिति ' + agmDate + ' गते बिहान १० बजे यस कम्पनीको वार्षिक साधरण सभाको बैठक यस कम्पनीका अध्यक्ष ' + chairmanName + ' को अध्यक्षतामा बैठक बसि तपशिल बमोजिमको महानुभावको उपस्थितिमा निम्नाअनुसारको निर्णय गरियो ।'),
-      P(''),
-      subHead('उपस्थिति :'),
-      attendanceTable(allBOD),
-      P(''),
-      subHead('गणपुरक संख्या'),
-      P('यस कम्पनीको नियमावलिको नियम बमोजिम सम्पूर्ण शेयरधनि स्वयं उपस्थित हुनु भई कम्पनी ऐन तथा यस कम्पनीको नियमावली बमोजिम सभा संचालन गर्न आवश्यक गणपुरक संख्या पुगेको हुँदा सो बारेमा सभामा उपस्थिती सवै शेयरधनिहरुलाई सभाको वैधानिकता बारे जानकारि गराउदै मिति ' + bodDate + ' मा बोलाईएको यस कम्पनीको वार्षिक साधरण सभामा निम्न उल्लेखित प्रस्तावहरु उपर सभामा छलफल गरि निर्णय गर्न सभाको अध्यक्ष ज्युले सभा संचालन गर्नु भयो ।'),
-      P(''),
-      subHead('प्रस्तावहरु'),
-      P('१. अध्यक्षद्वारा वार्षिक प्रतिवेदन प्रस्तुत गर्ने सम्बन्धमा ।'),
-      P('२. आ.व. ' + fiscalYear + ' को वित्तीय विवरण तथा लेखापरिक्षण प्रतिवेदन सम्बन्धमा छलफल गरि पारित गर्ने सम्बन्धमा ।'),
-      P('३. आ.व. ' + nextFiscalYear + ' को लेखा परिक्षक नियुक्ति गर्ने सम्बन्धमा ।'),
-      P('४. विविध'),
-      P(''),
-      subHead('निर्णयहरु'),
-      subHead('निर्णय नं: १.अध्यक्षद्वारा वार्षिक विवरण प्रस्तुत गर्ने सम्बन्धमा:'),
-      P('प्रस्ताव नं १ माथि छलफल गर्दा कम्पनीका अध्यक्षले प्रस्तुत गर्नु भएको वार्षिक प्रतिवेदन प्रति धन्यवाद दिने निर्णय गरियो ।'),
-      P(''),
-      subHead('निर्णय नं. २. गत वर्षको वित्तीय विवरण तथा लेखापरिक्षण प्रतिवेदन सम्बन्धमा छलफल गरि पारित गर्ने सम्बन्धमा:'),
-      P('प्रस्ताव नं २ माथि छलफल गर्दा कम्पनीका लेखापरिक्षक ' + curAuditorFirm + ' का ' + auditorName + ' ज्युले यस सभा समक्ष प्रस्तुत गर्नुभएको आ.व. ' + fiscalYear + ' को लेखापरिक्षक प्रतिवेदन तथा आय व्यय विवरण र वासलात माथि छलफल भई समर्थन गर्ने निर्णय गरियो ।'),
-      P(''),
-      subHead('निर्णय नं. ३. आ.व. ' + nextFiscalYear + ' को लागि लेखा परिक्षक नियुक्ति गर्ने सम्बन्धमा:'),
-      P('प्रस्ताव नं ३ माथि छलफल गर्दा कम्पनी ऐन २०६३ को दफा १११ बमोजिम आर्थिक वर्ष ' + nextFiscalYear + ' को लागि कम्पनीका लेखापरिक्षक ' + nextAuditorFirm + ' का ' + nextAuditorName + ' ज्युलाई नियुक्ति गर्ने र पारिश्रमिकको हकमा लेखापरिक्षकज्युको आपिस सहमतिमा निर्धारण गर्ने निर्णय गरियो ।'),
-      P(''),
-      subHead('निर्णय नं ४ विविधः'),
-      P('प्रस्ताव नं ४ माथि छलफल गर्दा बैठकको अन्य विषय नहुनाले आजको बैठक यहि समाप्त गर्ने निर्णय गरियो ।'),
-    );
-
-    // DOC 6: APPLICATION LETTER (Section 50)
-    children.push(
-      PB(),
-      P('मिति ' + appDate, { right: true }),
-      P(''),
-      P('श्रीमान कम्पनी रजिष्ट्रार ज्यू'),
-      P('कम्पनी रजिष्ट्रारको कार्यालय'),
-      P('त्रिपुरेश्वर, काठमाण्डौ'),
-      P(''),
-      subHead('विषय :-दफा ५० (२) बमोजिमको कागजात पेश गरेको सम्बन्धमा ।'),
-      P(''),
-      P('महोदय,'),
-      P(''),
-      P('उपरोक्त सम्बन्धमा यस कम्पनीको मिति ' + agmDate + ' मा बसेको वार्षिक साधारण सभा, उक्त सभाले गरेको निर्णयहरु र लेखापरिक्षककोको आर्थिक बर्षको वार्षिक प्रतिवेदन र दफा ५१ को विवरण, कम्पनी ऐन २०६३ को दफा ५० (२) को प्रयोजनको लागि पेश गरेका छौं । सोको अभिलेख गराई पाउँ ।'),
-      P(''),
-      P('निवेदक'),
-      P(''), P(''), P(''), P(''), P(''),
-      P(chairmanName),
-      P('अध्यक्ष'),
-      P(companyName),
-    );
-
-    // DOC 7: SECTION 92 — ONE PER BOD MEMBER
-    allBOD.forEach((member) => {
-      children.push(
-        PB(),
-        heading(companyName + ' को'),
-        heading('कम्पनी ऐन, २०६३ को दफा ९२ को विवरण', true),
-        P(''),
-        P('क) कम्पनीको कारोबार संग सम्बन्धित कुनै प्रकारको खरिद बिक्की वा अन्य प्रकारको ठेक्का पट्टामा आफू वा आफ्नो निजकको नातेदारको प्रत्यक्ष संलग्नता भएमा वा कुनै किसिमको निजी स्वार्थ भएमा - छैन ।'),
-        P('ख) कम्पनीको प्रबन्ध सञ्चालक, कम्पनी सचिव, पदाधिकारीको नियुक्तिको सम्बन्धमा कुनै प्रकारको स्वार्थ भएमा - छैन ।'),
-        P('ग) अन्य कुनै कम्पनीको सञ्चालक रहेमा- छ ।'),
-        P('घ) कम्पनी वा त्यस्तो कम्पनीको मुख्य वा सहायक कम्पनीको शेयर वा डिबेञ्चरको कारोबार गरेको भएमा त्यस्तो कारोबारको विषयमा - नभएको ।'),
-        P(''), P(''), P(''), P(''), P(''), P(''),
-        P('.....................................'),
-        P(member.name),
-        P(member.role),
-        P(companyName),
-      );
-    });
-
-    // DOC 8: SECTION 51
-    const dirRows = allBOD.map((m, i) => new TableRow({ children: [
-      TC(toNep(i + 1), { w: 700, center: true }),
-      TC(m.name, { w: 2700 }),
-      TC(i === 0 ? 'संचालक/ अध्यक्ष' : 'संचालक', { w: 2000 }),
-      TC(m.addr, { w: 3800 }),
-    ]}));
-
-    children.push(
-      PB(),
-      heading(companyName),
-      P('कम्पनी दर्ता नं: ' + regNumber, { center: true }),
-      P(''),
-      heading('कम्पनी रजिष्ट्रारको कार्यालयमा पेश गर्नुपर्ने', true),
-      heading('कम्पनी ऐन, २०६३ को दफा ५१ बमोजिमको', true),
-      heading('शेयर, डिवेन्चर र ऋणको लगत', true),
-      P(''),
-      subHead('दफा ५१ (१)'),
-      P('यस ' + companyName + ' मा स्वीकृत साविकको शेयरलागतमा उल्लेख भएबमोजिम नै शेयधनीहरु भएको कुरा जानकारी गराउदछौं ।'),
-      P(''),
-      subHead('दफा ५१ (२)'),
-      P('क) कम्पनीको अधिकृत पूँजि र शेयरको संख्या:- अधिकृत पूँजि रु. ' + authCapital + '/- शेयर संख्या ' + (numShares ? toNep(numShares) : '') + '/'),
-      P('ख) कम्पनीको जारी शेयर पूँजि :रु. ' + issuedCapital + '/-'),
-      P('ग) कम्पनीको चुक्ता पूँजि :- रु. ' + paidUpCapital + '/-'),
-      P('घ) शेयरपिच्छे माग भएको रकम :-प्रतिकित्ता रु १००/-का दरले ।'),
-      P('ड) किस्ता असुल भएको जम्मा रकम : रु. ' + paidAmt + '/-'),
-      P('च) असुल हुन बाँकी रहेको रकम:- ' + unpaidCapital),
-      P('छ) शेयर वा डिवेन्चरमा दलाली दस्तुर वापत दिएको जम्मा रकम: छैन ।'),
-      P('ज) कुनै शेयर जफत गरिएकोमा त्यस्तो शेयरको जम्मा संख्या, जफत भएको कारण र मिति: छैन ।'),
-      P('फ) बैंक, वित्तिय संस्था वा अन्य कुनै व्यक्तिबाट लिएको ऋण वा कम्पनीले दिएको जमानत:- नभएको ।'),
-      P('(१) यस कम्पनीले अन्य कुनै कम्पनीमा लगानी गरेको भए त्यस्तो कम्पनीको नाम, दर्ता नम्बर लगानी गरेको रकम: छैन ।'),
-      P(''), P(''), P(''), P(''), P(''), P(''), P(''), P(''), P(''), P(''), P(''),
-      subHead('ञ) बहालवाला सञ्चालकको नाम र ठेगाना :-'),
-      new Table({
-        width: { size: 9200, type: WidthType.DXA },
-        columnWidths: [700, 2700, 2000, 3800],
-        rows: [
-          new TableRow({ children: [
-            TC('क्र.सं.', { w: 700, header: true, center: true }),
-            TC('नाम थर', { w: 2700, header: true }),
-            TC('पद', { w: 2000, header: true }),
-            TC('ठेगाना', { w: 3800, header: true }),
-          ]}),
-          ...dirRows,
-        ]
-      }),
-      P(''), P(''), P(''), P(''), P(''), P(''),
-      P(chairmanName),
-      P('अध्यक्ष'),
-      P(companyName),
-    );
-
-    return children;
-  }
-
-  // ── NAVIGATION ──
-  function goTo(step) {
-    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.sidebar-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('ocr-step-' + step).classList.add('active');
-    document.getElementById('ocr-nav-' + step).classList.add('active');
-    document.querySelectorAll('#ocr-m-steps .ms').forEach((el, i) => el.classList.toggle('active', i === step));
-    currentStep = step;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (step === 4) buildReview();
-  }
-  window.goTo = goTo;
-
-  // ── DIRECTORS ──
-  function addDirector() {
-    dirCount++;
-    const idx = dirCount;
-    const container = document.getElementById('ocr-directors-container');
-    const block = document.createElement('div');
-    block.className = 'director-block';
-    block.id = 'ocr-dir-block-' + idx;
-    block.innerHTML =
-      '<div class="director-block-title">Director ' + (directors.length + 1) + ' (संचालक ' + toNep(directors.length + 1) + ')</div>' +
-      '<button class="remove-btn" onclick="removeDirector(' + idx + ')">✕</button>' +
+  // ── people editors ──
+  function personRow(kind, withShares) {
+    var roleOpts = W.roles.map(function (r) { return "<option>" + r + "</option>"; }).join("");
+    var extra = withShares
+      ? '<div class="field-group"><label>Shares</label><input class="np dig" data-f="shares" placeholder="१००००"></div>'
+      : '<div class="field-group"><label>Role</label><select data-f="role">' + roleOpts + "</select></div>";
+    var d = document.createElement("div");
+    d.className = "director-block"; d.setAttribute("data-" + kind, "");
+    d.innerHTML = '<button type="button" class="remove-btn" data-remove>&times;</button>' +
+      '<div class="reorder"><button type="button" data-up title="Move up">▲</button><button type="button" data-down title="Move down">▼</button></div>' +
       '<div class="field-grid">' +
-        '<div class="field-group"><label>Director Name <span class="required">*</span><span class="hint">Full name in Nepali</span></label>' +
-        '<input type="text" class="np" id="ocr-dirName-' + idx + '" placeholder="श्री श्याम शर्मा" /></div>' +
-        '<div class="field-group"><label>Director Address <span class="required">*</span></label>' +
-        '<input type="text" class="np" id="ocr-dirAddr-' + idx + '" placeholder="का.जि.का.म.न.पा. वडा नं.९" /></div>' +
-      '</div>';
-    container.appendChild(block);
-    directors.push(idx);
+      '<div class="field-group"><label>Full name (नेपाली)</label><input class="np" data-f="name" placeholder="राम बहादुर थापा"></div>' +
+      '<div class="field-group"><label>Address</label><input class="np" data-f="address" placeholder="काठमाडौँ-१०, काठमाडौँ"> <label class="mini"><input type="checkbox" data-sameaddr> same as company</label></div>' +
+      extra + "</div>";
+    return d;
   }
-  window.addDirector = addDirector;
-
-  function removeDirector(idx) {
-    const el = document.getElementById('ocr-dir-block-' + idx);
-    if (el) el.remove();
-    directors = directors.filter(d => d !== idx);
-    renumberDirectors();
+  function addDirector() { var d = personRow("director", false); $("directors").appendChild(d); if ($("directors").children.length === 1) d.querySelector('[data-f="role"]').value = "अध्यक्ष"; }
+  function addShareholder() { $("shareholders").appendChild(personRow("shareholder", true)); }
+  function rows(box, kind) {
+    return Array.prototype.map.call($(box).querySelectorAll("[data-" + kind + "]"), function (b) {
+      function f(n) { var e = b.querySelector('[data-f="' + n + '"]'); return e ? e.value.trim() : ""; }
+      return { name: f("name"), address: f("address"), role: f("role") || "सञ्चालक", shares: f("shares") };
+    });
   }
-  window.removeDirector = removeDirector;
+  function directors() { return rows("directors", "director"); }
 
-  function renumberDirectors() {
-    directors.forEach((idx, i) => {
-      const block = document.getElementById('ocr-dir-block-' + idx);
-      if (block) block.querySelector('.director-block-title').textContent = 'Director ' + (i + 1) + ' (संचालक ' + toNep(i + 1) + ')';
+  // ── Section 92 per-director editor (default छैन; tick ग + names) ──
+  function buildSec92() {
+    var wrap = $("sec92wrap"); wrap.innerHTML = "";
+    directors().forEach(function (m, i) {
+      var row = document.createElement("div");
+      row.className = "mini-row"; row.setAttribute("data-s92", "");
+      row.innerHTML = '<span class="muted">' + (m.name || ("Director " + (i + 1))) + "</span>" +
+        ' <label class="mini"><input type="checkbox" data-g> ग = छ (director of another company)</label>' +
+        ' <input class="np" data-gnames placeholder="other company names" hidden>';
+      wrap.appendChild(row);
+    });
+    wrap.addEventListener("change", function (e) { var g = e.target.closest("[data-s92]"); if (g) { var gn = g.querySelector("[data-gnames]"); gn.hidden = !g.querySelector("[data-g]").checked; } });
+  }
+  function sec92Data() {
+    return Array.prototype.map.call($("sec92wrap").querySelectorAll("[data-s92]"), function (r) {
+      var g = r.querySelector("[data-g]").checked;
+      return { g: g ? "छ" : "छैन", gNames: g ? r.querySelector("[data-gnames]").value.trim() : "" };
     });
   }
 
-  function getDirectors() {
-    return directors.map(idx => ({
-      name: (document.getElementById('ocr-dirName-' + idx)?.value || '').trim(),
-      addr: (document.getElementById('ocr-dirAddr-' + idx)?.value || '').trim()
-    })).filter(d => d.name);
-  }
-
-  // ── AUDITOR TOGGLE ──
-  function toggleAuditor() {
-    auditorChangeEnabled = !auditorChangeEnabled;
-    document.getElementById('ocr-auditorToggle').classList.toggle('on', auditorChangeEnabled);
-    document.getElementById('ocr-auditorDatesSection').classList.toggle('visible', auditorChangeEnabled);
-    document.getElementById('ocr-prevAuditorCard').style.display = auditorChangeEnabled ? 'block' : 'none';
-  }
-  window.toggleAuditor = toggleAuditor;
-
-  // ── NEPALI DATE MATH ──
-  const BS_MONTHS = {
-    2079:[31,32,31,32,31,30,30,30,29,30,29,30],
-    2080:[31,32,31,32,31,30,30,30,29,30,29,30],
-    2081:[31,31,32,31,31,31,30,29,30,29,30,30],
-    2082:[31,31,32,32,31,30,30,29,30,29,30,30],
-    2083:[31,32,31,32,31,30,30,30,29,30,29,30],
-    2084:[31,31,32,31,31,30,30,30,29,30,29,31],
-    2085:[30,32,31,32,31,30,30,30,29,30,29,31],
-    2086:[31,31,32,31,31,31,30,29,30,29,30,30],
-    2087:[31,31,32,32,31,30,29,30,30,29,30,30],
-  };
-  function parseNepDate(str) {
-    if (!str) return null;
-    const s = str.replace(/[०-९]/g, d => '0123456789'['०१२३४५६७८९'.indexOf(d)]);
-    const parts = s.split('/');
-    if (parts.length < 3) return null;
-    return { y: parseInt(parts[0]), m: parseInt(parts[1]), d: parseInt(parts[2]) };
-  }
-  function formatNepDate(y, m, d) {
-    return toNep(y) + '/' + toNep(String(m).padStart(2,'0')) + '/' + toNep(String(d).padStart(2,'0'));
-  }
-  function addNepDays(dateStr, days) {
-    let dt = parseNepDate(dateStr);
-    if (!dt) return '';
-    let { y, m, d } = dt;
-    d += days;
-    while (true) {
-      const months = BS_MONTHS[y] || BS_MONTHS[2082];
-      const mDays = months[m - 1];
-      if (d <= mDays) break;
-      d -= mDays; m++;
-      if (m > 12) { m = 1; y++; }
-    }
-    return formatNepDate(y, m, d);
-  }
-  function autoSGM() {
-    const bod = document.getElementById('ocr-bodAuditorDate').value;
-    if (!bod) { alert('Please enter BOD Auditor Date first'); return; }
-    const result = addNepDays(bod, 15);
-    document.getElementById('ocr-sgmDate').value = result;
-    document.getElementById('ocr-sgmHint').textContent = '✓ १५ दिन पछि: ' + result;
-  }
-  window.autoSGM = autoSGM;
-  function autoAGM() {
-    const bod = document.getElementById('ocr-bodDate').value;
-    if (!bod) { alert('Please enter BOD Meeting Date first'); return; }
-    const result = addNepDays(bod, 21);
-    document.getElementById('ocr-agmDate').value = result;
-    document.getElementById('ocr-agmHint').textContent = '✓ २१ दिन पछि: ' + result;
-  }
-  window.autoAGM = autoAGM;
-
+  // ── capital helpers (B6) ──
   function calcCapital() {
-    const n = parseInt(document.getElementById('ocr-numShares').value) || 0;
-    if (n > 0) document.getElementById('ocr-authCapital').value = toNepaliAmount(n * 100);
+    var auth = OCRCore.calcAuthCapital(val("numShares"), val("faceValue") || 100);
+    $("authCapital").value = auth ? groupNep(auth) : "";
+    if (!val("paidAmt") && val("paidUp")) $("paidAmt").value = $("paidUp").value;
+    var paidUp = parseInt(String(val("paidUp")).replace(/[^0-9]/g, "") || nepToAscii(val("paidUp")), 10);
+    var paid = parseInt(String(val("paidAmt")).replace(/[^0-9]/g, "") || nepToAscii(val("paidAmt")), 10);
+    if (!isNaN(paidUp)) { var up = paidUp - (isNaN(paid) ? 0 : paid); $("unpaid").value = up > 0 ? groupNep(up) : "छैन"; }
   }
-  window.calcCapital = calcCapital;
+  function nepToAscii(s) { return String(s || "").replace(/[०-९]/g, function (c) { return "०१२३४५६७८९".indexOf(c); }); }
 
-  // ── COLLECT DATA ──
-  function collectData() {
-    const val = id => (document.getElementById(id).value || '').trim();
+  // ── fiscal year dropdown (B4) ──
+  function buildFY() {
+    var sel = $("fy"); sel.innerHTML = "";
+    for (var y = 2085; y >= 2078; y--) opt(sel, OCRCore.fyLabel(y), OCRCore.fyLabel(y));
+    sel.value = OCRCore.fyLabel(2082);
+    $("nextFy").value = OCRCore.fyNext(sel.value);
+    sel.addEventListener("change", function () { $("nextFy").value = OCRCore.fyNext(sel.value); });
+  }
+
+  // ── document choices (B8) ──
+  var DOC_LABELS = { sgmBod: "SGM-call BOD minute", sgm: "SGM minute", c2: "Appointment letter (new current-year auditor)", c3: "Auditor acceptance letter(s)", bo: "Beneficiary Owner detail", agmBod: "AGM-call BOD minute", agm: "AGM minute", c1: "Appointment letter (next-year auditor)", app50: "Application letter (दफा ५०)", sec92: "Section 92 (दफा ९२)", sec51: "Section 51 (दफा ५१)" };
+  function buildDocChoices() {
+    var box = $("docChoices"); box.innerHTML = "";
+    Object.keys(DOC_LABELS).forEach(function (id) {
+      var g = document.createElement("div"); g.className = "field-group";
+      g.innerHTML = '<label class="mini"><input type="checkbox" data-doc="' + id + '" checked> ' + DOC_LABELS[id] + "</label>";
+      box.appendChild(g);
+    });
+  }
+  function docsSelected() {
+    var sel = {};
+    Array.prototype.forEach.call($("docChoices").querySelectorAll("[data-doc]"), function (c) { sel[c.getAttribute("data-doc")] = c.checked; });
+    return sel;
+  }
+
+  // ── collect the form into the builder's data shape ──
+  function collect() {
+    var ms = directors();
+    var chairIdx = 0; ms.forEach(function (m, i) { if (m.role === "अध्यक्ष") chairIdx = i; });
+    var change = $("auditorChange").checked;
+    var reasonPhrase = val("reasonCustom") || (($("reason").value) || "");
+    var nextSame = $("nextSame").checked;
+    var cur = { name: val("curName"), firm: val("curFirm"), address: val("curAddr"), designation: $("curDesig").value };
+    var next = nextSame ? Object.assign({}, cur) : { name: val("nextName"), firm: val("nextFirm"), address: val("nextAddr"), designation: $("nextDesig").value };
+    var feeOf = function (p) { var mode = $("fee" + p + "mode").value; return { mode: mode, amount: nepToAscii(val("fee" + p + "val")), vat: $("fee" + p + "vat").value }; };
     return {
-      companyName: val('ocr-companyName'), companyAddress: val('ocr-companyAddress'), regNumber: val('ocr-regNumber'),
-      chairmanName: val('ocr-chairmanName'), chairmanAddr: val('ocr-chairmanAddr'),
-      directors: getDirectors(),
-      bodAuditorDate: val('ocr-bodAuditorDate'), sgmDate: val('ocr-sgmDate'), bodDate: val('ocr-bodDate'),
-      agmDate: val('ocr-agmDate'), appDate: val('ocr-appDate'),
-      fiscalYear: val('ocr-fiscalYear'), nextFiscalYear: val('ocr-nextFiscalYear'),
-      prevAuditorFirm: val('ocr-prevAuditorFirm'), prevAuditorName: val('ocr-prevAuditorName'),
-      curAuditorFirm: val('ocr-curAuditorFirm'), auditorName: val('ocr-auditorName'),
-      nextAuditorFirm: val('ocr-nextAuditorFirm'), nextAuditorName: val('ocr-nextAuditorName'),
-      numShares: val('ocr-numShares'), authCapital: val('ocr-authCapital'), issuedCapital: val('ocr-issuedCapital'),
-      paidUpCapital: val('ocr-paidUpCapital'), paidAmt: val('ocr-paidAmt'),
-      unpaidCapital: val('ocr-unpaidCapital') || 'छैन',
-      auditorChange: auditorChangeEnabled,
+      company: { name: val("companyName"), address: val("companyAddress"), reg: val("regNumber"), letterhead: radio("letterhead") === "yes" },
+      members: ms, chairIndex: chairIdx,
+      shareholdersSameAsDirectors: $("shSame").checked,
+      shareholders: $("shSame").checked ? [] : rows("shareholders", "shareholder"),
+      dates: { bodAuditor: val("bodAuditor"), sgm: val("sgm"), bod: val("bod"), agm: val("agm"), app: val("app") },
+      times: { sgmBod: val("timeSgm") || W.defaults.times.sgmBod, sgm: val("timeSgm") || W.defaults.times.sgm, agmBod: val("timeAgmBod") || W.defaults.times.agmBod, agm: val("timeAgm") || W.defaults.times.agm },
+      fiscal: { current: $("fy").value, next: $("nextFy").value },
+      auditorChange: change,
+      reasonPhrase: reasonPhrase,
+      auditors: { prev: { name: val("prevName"), firm: val("prevFirm") }, cur: cur, next: next },
+      capital: { numShares: nepToAscii(val("numShares")), faceValue: nepToAscii(val("faceValue")) || 100, authCapital: val("authCapital"), issued: val("issued"), paidUp: val("paidUp"), paidAmt: val("paidAmt") || val("paidUp"), unpaid: val("unpaid") || "छैन" },
+      sec92: sec92Data(),
+      sec51: { shareholdersChanged: $("shChanged").checked, loans: val("loans"), brokerage: val("brokerage"), forfeited: val("forfeited"), investments: val("investments") },
+      quorumAllPresent: $("quorumAll") ? $("quorumAll").checked : true,
+      acceptance: { enabled: $("acceptance").checked, forC1: true, forC2: change },
+      fee: { c1: feeOf("C1"), c2: feeOf("C2") },
+      docsSelected: docsSelected(),
     };
   }
 
-  // ── REVIEW ──
-  function buildReview() {
-    const d = collectData();
-    const allDirs = [{ name: d.chairmanName, addr: d.chairmanAddr, role: 'अध्यक्ष' },
-      ...d.directors.map(x => ({ ...x, role: 'संचालक' }))];
-    const docs = [
-      d.auditorChange ? 'SGM Call for Auditor Change (Sanchaalak Meeting)' : null,
-      d.auditorChange ? 'SGM Minute (Bishesh Sadharan Sabha)' : null,
-      'Beneficiary Owner Detail',
-      'AGM Call Minute (Sanchaalak Samiti)',
-      'AGM Minute (Vaarsik Sadharan Sabha)',
-      'Application Letter (Section 50)',
-      ...allDirs.map(x => 'Section 92 — ' + x.name + ' (' + x.role + ')'),
-      'Section 51 (Share, Debenture & Loan Register)',
-    ].filter(Boolean);
-
-    document.getElementById('ocr-reviewContent').innerHTML =
-      '<div class="review-grid">' +
-        item('Company', d.companyName) + item('Registration', d.regNumber) +
-        item('BOD Date', d.bodDate) + item('AGM Date', d.agmDate) +
-        item('Fiscal Year', d.fiscalYear) + item('Total BOD Members', allDirs.length) +
-      '</div>' +
-      '<div class="doc-checklist"><div class="dc-head">Documents to be generated</div>' +
-        docs.map(x => '<div class="doc-check-item"><span class="ck">✓</span> ' + escapeHtml(x) + '</div>').join('') +
-      '</div>';
-    document.getElementById('ocr-generateSubText').textContent = docs.length + ' documents will be generated into one Word file.';
-  }
-  function item(label, value) {
-    return '<div class="review-item"><div class="review-item-label">' + label + '</div><div class="review-item-value">' + escapeHtml(String(value || '—')) + '</div></div>';
-  }
-  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-
-  // ── GENERATE (client-side) ──
-  async function generateDocs() {
-    const data = collectData();
-    if (!data.companyName || !data.regNumber || !data.chairmanName) {
-      showError('Please fill in the required fields: Company Name, Registration Number and Chairman Name.');
-      return;
+  // ── validation (B9) ──
+  function validateStep(s) {
+    var errs = [];
+    if (s === 0) { if (!val("companyName")) errs.push("Company name required."); if (!val("companyAddress")) errs.push("Company address required."); if (!val("regNumber")) errs.push("Registration number required."); }
+    if (s === 1) { if (!directors().some(function (m) { return m.name; })) errs.push("Add at least one director."); }
+    if (s === 2) {
+      ["bod", "agm", "app"].forEach(function (d) { if (!val(d)) errs.push("Missing date: " + d + "."); });
+      try { if (val("bod") && val("agm") && OCRCore.addDays(val("bod"), 21) > val("agm")) errs.push("AGM should be at least 21 days after the BOD meeting."); } catch (e) { errs.push(e.message); }
+      if ($("auditorChange").checked) { if (!val("sgm")) errs.push("SGM date required for an auditor change."); }
     }
-    hideError();
-    const btns = document.getElementById('ocr-generateBtns');
-    btns.style.opacity = '0.4'; btns.style.pointerEvents = 'none';
-    document.getElementById('ocr-progressWrap').classList.add('visible');
-    document.getElementById('ocr-resultDownloads').classList.remove('visible');
-    document.getElementById('ocr-resultDownloads').innerHTML = '';
+    if (s === 3) { if (!val("curName") || !val("curFirm")) errs.push("This year's auditor is required."); if (!val("numShares")) errs.push("Number of shares required."); }
+    var dot = $("nav-" + s) && $("nav-" + s).querySelector(".warn-dot"); if (dot) dot.hidden = errs.length === 0;
+    return errs;
+  }
 
-    const steps = [
-      'Preparing company data…', 'Building document structure…',
-      'Writing AGM Call Minute…', 'Writing AGM Minute…', 'Writing Beneficiary Owner…',
-      'Writing Section 92 declarations…', 'Writing Section 51 register…',
-      data.auditorChange ? 'Writing SGM documents…' : null,
-      'Writing Application Letter…', 'Finalizing document…',
-    ].filter(Boolean);
-    for (let i = 0; i < steps.length; i++) { setProgress(Math.round((i / steps.length) * 80), steps[i]); await sleep(160); }
+  function goTo(s) {
+    document.querySelectorAll(".step-panel").forEach(function (p) { p.classList.remove("active"); });
+    document.querySelectorAll(".sidebar-step").forEach(function (x) { x.classList.remove("active"); });
+    $("step-" + s).classList.add("active"); $("nav-" + s).classList.add("active");
+    document.querySelectorAll("#ocr-m-steps .ms").forEach(function (m, i) { m.classList.toggle("active", i === s); });
+    if (s === 3) buildSec92();
+    if (s === 4) buildDocChoices();
+    step = s; window.scrollTo(0, 0);
+  }
 
+  // ── save / load / roll-forward (B7) ──
+  function download(bytes, name, mime) {
+    var blob = bytes instanceof Blob ? bytes : new Blob([bytes], { type: mime || "application/octet-stream" });
+    var a = document.createElement("a"), url = URL.createObjectURL(blob);
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+  }
+  function saveClient() { download(JSON.stringify(collect(), null, 2), (val("companyName") || "client").replace(/[^\wऀ-ॿ]+/g, "_") + "_OCR.json", "application/json"); }
+  function fillForm(d) {
+    if (!d) return;
+    $("companyName").value = d.company.name || ""; $("companyAddress").value = d.company.address || ""; $("regNumber").value = d.company.reg || "";
+    (document.querySelector('input[name="ocr-letterhead"][value="' + (d.company.letterhead === false ? "no" : "yes") + '"]') || {}).checked = true;
+    $("directors").innerHTML = ""; (d.members || []).forEach(function (m) { addDirector(); var b = $("directors").lastChild; b.querySelector('[data-f="name"]').value = m.name || ""; b.querySelector('[data-f="address"]').value = m.address || ""; b.querySelector('[data-f="role"]').value = m.role || "सञ्चालक"; });
+    if (!$("directors").children.length) addDirector();
+    $("shSame").checked = d.shareholdersSameAsDirectors !== false; $("shWrap").hidden = $("shSame").checked;
+    $("shareholders").innerHTML = ""; (d.shareholders || []).forEach(function (s) { addShareholder(); var b = $("shareholders").lastChild; b.querySelector('[data-f="name"]').value = s.name || ""; b.querySelector('[data-f="address"]').value = s.address || ""; b.querySelector('[data-f="shares"]').value = s.shares || ""; });
+    var dt = d.dates || {}; ["bodAuditor", "sgm", "bod", "agm", "app"].forEach(function (k) { if ($(k)) $(k).value = dt[k] || ""; });
+    var tm = d.times || {}; if ($("timeSgm")) $("timeSgm").value = tm.sgm || ""; if ($("timeAgmBod")) $("timeAgmBod").value = tm.agmBod || ""; if ($("timeAgm")) $("timeAgm").value = tm.agm || "";
+    if (d.fiscal && d.fiscal.current) { $("fy").value = d.fiscal.current; $("nextFy").value = d.fiscal.next || OCRCore.fyNext(d.fiscal.current); }
+    $("auditorChange").checked = !!d.auditorChange; toggleChange();
+    var a = d.auditors || {}; $("prevName").value = (a.prev || {}).name || ""; $("prevFirm").value = (a.prev || {}).firm || "";
+    $("curName").value = (a.cur || {}).name || ""; $("curFirm").value = (a.cur || {}).firm || ""; $("curAddr").value = (a.cur || {}).address || "";
+    var c = d.capital || {}; $("numShares").value = c.numShares || ""; $("faceValue").value = c.faceValue || 100; $("issued").value = c.issued || ""; $("paidUp").value = c.paidUp || ""; $("paidAmt").value = c.paidAmt || ""; calcCapital();
+    convertDigitsAll();
+  }
+  function loadClient(file) { var r = new FileReader(); r.onload = function () { try { fillForm(JSON.parse(r.result)); } catch (e) { msg("globalMsgs", ["Could not read that client file."]); } }; r.readAsText(file); }
+  function rollForward(file) { var r = new FileReader(); r.onload = function () { try { fillForm(OCRCore.rollForward(JSON.parse(r.result))); msg("globalMsgs", [], ["Rolled forward. Review the dates (cleared) and auditors before generating."]); } catch (e) { msg("globalMsgs", ["Could not roll that client file forward."]); } }; r.readAsText(file); }
+
+  function convertDigitsAll() { Array.prototype.forEach.call(document.querySelectorAll("#ocr-step-0 .dig, .step-panel .dig"), function (el) { if (el.classList.contains("np")) el.value = nepDigits(el.value); }); }
+
+  function toggleChange() {
+    var on = $("auditorChange").checked;
+    $("reasonWrap").hidden = !on; $("prevAuditorCard").hidden = !on; $("sgmDatesCard").hidden = !on; $("feeC2wrap").style.display = on ? "" : "none";
+  }
+
+  function generate() {
+    var all = [];[0, 1, 2, 3].forEach(function (s) { all = all.concat(validateStep(s)); });
+    if (all.length) { msg("msgs", all); return; }
+    var data = collect();
     try {
-      const children = buildAllDocs(data);
-      const doc = new Document({
-        sections: [{
-          properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } } },
-          children
-        }]
-      });
-      setProgress(92, 'Packaging .docx…');
-      const blob = await Packer.toBlob(doc);
-      const safeName = (data.companyName || 'Company').replace(/[^a-zA-Z0-9ऀ-ॿ]/g, '_').slice(0, 40);
-      lastBlob = blob;
-      lastFilename = safeName + '_OCR_documents.docx';
-      setProgress(100, 'Document ready!');
-      downloadBlob(blob, lastFilename);
-      showResult(data.companyName);
-    } catch (err) {
-      console.error(err);
-      showError('Could not generate the document: ' + (err && err.message ? err.message : err));
-    } finally {
-      btns.style.opacity = '1'; btns.style.pointerEvents = 'auto';
-    }
-  }
-  window.generateDocs = generateDocs;
-
-  function showResult(companyName) {
-    const c = document.getElementById('ocr-resultDownloads');
-    c.classList.add('visible');
-    c.innerHTML =
-      '<a class="download-btn" id="reDownload" href="#" onclick="reDownload(event)">' +
-        '<span class="dl-icon">📝</span>' +
-        '<div><div class="dl-main">Download Word Document</div>' +
-        '<div class="dl-sub">' + escapeHtml(companyName || 'Company') + ' — सम्पूर्ण कागजात.docx</div></div>' +
-      '</a>';
-  }
-  function reDownload(e) { e.preventDefault(); if (lastBlob) downloadBlob(lastBlob, lastFilename); }
-  window.reDownload = reDownload;
-
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+      var out = radio("output");
+      if (out === "zip") {
+        var sep = OCRCore.buildSeparate(data, W), zip = new PizZip();
+        var i = 0;
+        (function next() {
+          if (i >= sep.length) { download(zip.generate({ type: "uint8array" }), (val("companyName") || "OCR") + "_documents.zip", "application/zip"); return; }
+          OCRCore.Packer.toBlob(sep[i].doc).then(function (blob) { return blob.arrayBuffer(); }).then(function (ab) { zip.file((i + 1) + "_" + sep[i].id + ".docx", ab); i++; next(); });
+        })();
+      } else {
+        OCRCore.Packer.toBlob(OCRCore.buildCombined(data, W)).then(function (blob) { download(blob, (val("companyName") || "OCR") + "_documents.docx"); });
+      }
+      msg("msgs", [], []);
+    } catch (e) { msg("msgs", ["Could not build the documents: " + (e && e.message ? e.message : e)]); }
   }
 
-  function setProgress(pct, label) {
-    document.getElementById('ocr-progressBar').style.width = pct + '%';
-    document.getElementById('ocr-progressLabel').textContent = label;
+  function build() {
+    $("verifyBanner").hidden = W.meta && W.meta.verified === true;
+    buildFY();
+    $("reason").innerHTML = ""; W.reasons.forEach(function (r) { opt($("reason"), r.phrase, r.label); }); opt($("reason"), "", "Custom…");
+    // a quorum toggle in the shareholders card
+    var q = document.createElement("div"); q.className = "field-group full"; q.innerHTML = '<div class="radios"><label><input type="checkbox" id="ocr-quorumAll" checked> All shareholders present at the AGM</label></div>';
+    $("shWrap").parentNode.insertBefore(q, $("shWrap"));
+    addDirector(); // one to start
+
+    // events
+    document.addEventListener("click", function (e) {
+      var g = e.target.closest("[data-goto]"); if (g) {
+        var to = +g.getAttribute("data-goto");
+        if (to > step) validateStep(step); // refresh the warning dot; allow navigation regardless
+        goTo(to); return;
+      }
+      var auto = e.target.closest("[data-auto]");
+      if (auto) { var which = auto.getAttribute("data-auto"); try { if (which === "agm" && val("bod")) $("agm").value = OCRCore.addDays(val("bod"), 21); if (which === "sgm" && val("bodAuditor")) $("sgm").value = OCRCore.addDays(val("bodAuditor"), 15); } catch (err) { msg("msgs", [err.message]); } return; }
+      var rm = e.target.closest("[data-remove]"); if (rm) { var b = rm.closest("[data-director],[data-shareholder]"); if (b) b.remove(); return; }
+      var up = e.target.closest("[data-up]"); if (up) { var blk = up.closest("[data-director],[data-shareholder]"); if (blk && blk.previousElementSibling) blk.parentNode.insertBefore(blk, blk.previousElementSibling); return; }
+      var dn = e.target.closest("[data-down]"); if (dn) { var bl = dn.closest("[data-director],[data-shareholder]"); if (bl && bl.nextElementSibling) bl.parentNode.insertBefore(bl.nextElementSibling, bl); return; }
+    });
+    $("addDirector").addEventListener("click", addDirector);
+    $("addShareholder").addEventListener("click", addShareholder);
+    $("shSame").addEventListener("change", function () { $("shWrap").hidden = $("shSame").checked; });
+    document.addEventListener("change", function (e) {
+      if (e.target.matches("[data-sameaddr]")) { var b = e.target.closest("[data-director],[data-shareholder]"); if (e.target.checked) b.querySelector('[data-f="address"]').value = val("companyAddress"); }
+    });
+    $("auditorChange").addEventListener("change", toggleChange);
+    $("nextSame").addEventListener("change", function () { $("nextAuditorGrid").hidden = $("nextSame").checked; });
+    $("reason").addEventListener("change", function () { $("reasonCustom").hidden = $("reason").value !== ""; });
+    $("feeC1mode").addEventListener("change", function () { $("feeC1amt").hidden = $("feeC1mode").value !== "amount"; });
+    $("feeC2mode").addEventListener("change", function () { $("feeC2amt").hidden = $("feeC2mode").value !== "amount"; });
+    $("ourFirmCur").addEventListener("click", function () { if (W.firm) { $("curFirm").value = W.firm.name; $("curName").value = (W.firm.partners || [])[0] || ""; $("curAddr").value = W.firm.address || ""; } });
+    ["numShares", "faceValue", "paidUp", "paidAmt"].forEach(function (id) { $(id).addEventListener("input", calcCapital); });
+    $("save").addEventListener("click", saveClient);
+    $("load").addEventListener("change", function (e) { if (e.target.files[0]) loadClient(e.target.files[0]); });
+    $("rollfwd").addEventListener("change", function () {});
+    // roll-forward reuses the load picker via a hidden input
+    var rfInput = document.createElement("input"); rfInput.type = "file"; rfInput.accept = "application/json"; rfInput.hidden = true; document.body.appendChild(rfInput);
+    $("rollfwd").addEventListener("click", function () { rfInput.click(); });
+    rfInput.addEventListener("change", function (e) { if (e.target.files[0]) rollForward(e.target.files[0]); e.target.value = ""; });
+    $("generate").addEventListener("click", generate);
+    // English digits -> Nepali on blur for .dig.np fields
+    document.addEventListener("blur", function (e) { if (e.target.matches && e.target.matches(".dig.np")) { e.target.value = nepDigits(e.target.value); if (["issued", "paidUp", "paidAmt"].indexOf((e.target.id || "").replace("ocr-", "")) >= 0) calcCapital(); } }, true);
+    toggleChange();
   }
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-  function showError(msg) { const e = document.getElementById('ocr-errMsg'); e.textContent = msg; e.classList.add('visible'); }
-  function hideError() { document.getElementById('ocr-errMsg').classList.remove('visible'); }
+
   window.PortalTools = window.PortalTools || {};
-  window.PortalTools.ocr = { init: function () {} };
+  window.PortalTools.ocr = { init: function () { if (started) return; started = true; load(); } };
+  window.goTo = goTo; // sidebar legacy
 })();

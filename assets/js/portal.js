@@ -12,13 +12,22 @@
  */
 (function () {
   "use strict";
-  var V = "20261018";
+  var V = "20261020";
 
   // Registry: tool id -> ordered list of scripts to load on first open. The last
   // script in each list registers window.PortalTools[id] = { init }. Dependencies
   // first. Bank Account Opening is a Stage-2 stub for now (no scripts).
   var SCRIPTS = {
-    ocr: ["assets/js/docx.min.js", "assets/js/app.js?v=" + V],
+    ocr: [
+      "assets/js/docx.min.js",
+      "assets/js/js-yaml.min.js",
+      "assets/js/pizzip.min.js",
+      "assets/js/nepali-date.umd.js",
+      "assets/js/common/psg-num.js",
+      "assets/js/common/psg-bsdate.js",
+      "assets/js/ocr-core.js",
+      "assets/js/app.js?v=" + V
+    ],
     audit: [
       "assets/js/js-yaml.min.js",
       "assets/js/nepali-date.umd.js",

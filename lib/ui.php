@@ -87,7 +87,7 @@ HTML;
  * Every existing URL serves THIS page; only the default compartment differs.
  */
 function render_portal(array $user, string $default = ''): void {
-    $assets_v = '20261018';
+    $assets_v = '20261020';
     $head = app_header($user);
 
     // OCR Docs

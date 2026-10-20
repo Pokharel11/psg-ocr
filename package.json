@@ -5,12 +5,14 @@
   "description": "Internal staff document portal for ocr.psgassociates.com.np (static, client-side): OCR filings, Audit Letters, Bank Account Opening and Bank Statement Request. This package.json is dev tooling only (tests and sample generation). The deployed browser code vendors pizzip.min.js and docxtemplater.min.js under assets/js/.",
   "type": "commonjs",
   "scripts": {
-    "test": "node scripts/audit-letters.test.js && node scripts/bank.test.js && node scripts/bank-statement.test.js",
+    "test": "node scripts/audit-letters.test.js && node scripts/bank.test.js && node scripts/bank-statement.test.js && node scripts/ocr.test.js",
     "samples": "node scripts/make-samples.js",
     "bank-samples": "node scripts/make-bank-samples.js",
-    "statement-samples": "node scripts/make-bank-statement-samples.js"
+    "statement-samples": "node scripts/make-bank-statement-samples.js",
+    "ocr-samples": "node scripts/make-ocr-samples.js"
   },
   "devDependencies": {
+    "docx": "9.6.1",
     "docxtemplater": "3.71.0",
     "js-yaml": "5.4.2",
     "nepali-date-converter": "3.4.0",

@@ -1,31 +1,37 @@
-<!-- OCR Document Generator — tool markup (ids prefixed ocr-). Generated from the
-     original app.html; logic in assets/js/app.js. Rendered inside the OCR Docs
-     compartment by the portal. -->
+<!-- OCR Document Generator — tool markup (ids prefixed ocr-). Logic in
+     assets/js/app.js, documents built by assets/js/ocr-core.js from data/ocr.yaml.
+     Rendered inside the OCR Docs compartment by the portal. -->
 <div class="m-steps" id="ocr-m-steps">
-  <span class="ms active">1 · Company</span><span class="ms">2 · Directors</span><span class="ms">3 · Dates</span><span class="ms">4 · Audit</span><span class="ms">5 · Generate</span>
+  <span class="ms active">1 · Company</span><span class="ms">2 · People</span><span class="ms">3 · Dates</span><span class="ms">4 · Audit &amp; Capital</span><span class="ms">5 · Generate</span>
 </div>
 
 <div class="layout">
   <nav class="sidebar">
     <div class="sidebar-label">Setup</div>
     <div class="steps">
-      <div class="sidebar-step active" onclick="goTo(0)" id="ocr-nav-0"><div class="step-num">1</div> Company Info</div>
-      <div class="sidebar-step" onclick="goTo(1)" id="ocr-nav-1"><div class="step-num">2</div> Board of Directors</div>
-      <div class="sidebar-step" onclick="goTo(2)" id="ocr-nav-2"><div class="step-num">3</div> Dates &amp; Calendar</div>
-      <div class="sidebar-step" onclick="goTo(3)" id="ocr-nav-3"><div class="step-num">4</div> Audit &amp; Capital</div>
+      <div class="sidebar-step active" data-goto="0" id="ocr-nav-0"><div class="step-num">1</div> Company <span class="warn-dot" hidden>!</span></div>
+      <div class="sidebar-step" data-goto="1" id="ocr-nav-1"><div class="step-num">2</div> Directors &amp; Shareholders <span class="warn-dot" hidden>!</span></div>
+      <div class="sidebar-step" data-goto="2" id="ocr-nav-2"><div class="step-num">3</div> Dates &amp; Calendar <span class="warn-dot" hidden>!</span></div>
+      <div class="sidebar-step" data-goto="3" id="ocr-nav-3"><div class="step-num">4</div> Audit &amp; Capital <span class="warn-dot" hidden>!</span></div>
     </div>
     <div class="sidebar-label" style="margin-top:14px;">Generate</div>
-    <div class="steps">
-      <div class="sidebar-step" onclick="goTo(4)" id="ocr-nav-4"><div class="step-num">5</div> Review &amp; Generate</div>
-    </div>
+    <div class="steps"><div class="sidebar-step" data-goto="4" id="ocr-nav-4"><div class="step-num">5</div> Review &amp; Generate</div></div>
     <div class="sidebar-note">
       <b>Runs in your browser</b>
-      <span>Nothing is uploaded to a server. Documents are built on this device and downloaded directly.</span>
+      <span>Nothing is uploaded. Documents are built on this device and downloaded directly.</span>
+    </div>
+    <div class="sidebar-note" style="margin-top:10px;">
+      <button type="button" class="btn btn-ghost" id="ocr-save">💾 Save client file</button>
+      <label class="btn btn-ghost" style="cursor:pointer;">📂 Load client file<input type="file" id="ocr-load" accept="application/json" hidden></label>
+      <button type="button" class="btn btn-ghost" id="ocr-rollfwd" title="Load last year's file, then move everything to the next year">⏭ Roll forward to next year</button>
     </div>
   </nav>
 
   <main>
-    <!-- STEP 0 -->
+    <div class="banner" id="ocr-verifyBanner" hidden>Wording not yet verified: the OCR Nepali wording (spelling fixes + new letters) is draft (<code>verified: false</code> in data/ocr.yaml). Check the output before filing.</div>
+    <div class="msgs" id="ocr-globalMsgs"></div>
+
+    <!-- STEP 0 — Company -->
     <div class="step-panel active" id="ocr-step-0">
       <span class="eyebrow">Step 1 of 5</span>
       <h2 class="panel-title">Company Information</h2>
@@ -33,165 +39,188 @@
       <div class="section-card">
         <div class="section-card-title"><span class="icon">🏢</span> Basic Details</div>
         <div class="field-grid">
-          <div class="field-group full">
-            <label>Company Name <span class="required">*</span><span class="hint nep">In Nepali (e.g. सफारी एड्भाइजर प्रा.लि.)</span></label>
-            <input type="text" class="np" id="ocr-companyName" placeholder="सफारी एड्भाइजर प्रा.लि." />
-          </div>
-          <div class="field-group">
-            <label>Company Address <span class="required">*</span><span class="hint">In Nepali</span></label>
-            <input type="text" class="np" id="ocr-companyAddress" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
-          </div>
-          <div class="field-group">
-            <label>Registration Number <span class="required">*</span><span class="hint nep">दर्ता नं</span></label>
-            <input type="text" class="np" id="ocr-regNumber" placeholder="१२३४५६" />
+          <div class="field-group full"><label>Company Name <span class="required">*</span><span class="hint nep">नेपालीमा</span></label><input type="text" class="np" id="ocr-companyName" placeholder="हिमाल ट्रेडर्स प्रा.लि."></div>
+          <div class="field-group"><label>Company Address <span class="required">*</span></label><input type="text" class="np" id="ocr-companyAddress" placeholder="काठमाडौँ-१०, काठमाडौँ"></div>
+          <div class="field-group"><label>Registration Number <span class="required">*</span><span class="hint nep">दर्ता नं</span></label><input type="text" class="np dig" id="ocr-regNumber" placeholder="१२३४५६"></div>
+          <div class="field-group full"><label>Letterhead</label>
+            <div class="radios">
+              <label><input type="radio" name="ocr-letterhead" value="yes" checked> Include letterhead</label>
+              <label><input type="radio" name="ocr-letterhead" value="no"> No letterhead required</label>
+            </div>
           </div>
         </div>
       </div>
-      <div class="nav-row"><div></div><button class="btn btn-primary" onclick="goTo(1)">Next: Board of Directors <span class="arr">→</span></button></div>
+      <div class="nav-row"><div></div><button class="btn btn-primary" data-goto="1">Next: People <span class="arr">→</span></button></div>
     </div>
 
-    <!-- STEP 1 -->
+    <!-- STEP 1 — Directors & Shareholders -->
     <div class="step-panel" id="ocr-step-1">
       <span class="eyebrow">Step 2 of 5</span>
-      <h2 class="panel-title">Board of Directors</h2>
-      <p class="panel-subtitle">संचालक समितिका सदस्यहरु</p>
+      <h2 class="panel-title">Directors &amp; Shareholders</h2>
+      <p class="panel-subtitle">सञ्चालक तथा शेयरधनी</p>
       <div class="section-card">
-        <div class="section-card-title"><span class="icon">👤</span> Chairman (अध्यक्ष)</div>
-        <div class="field-grid">
-          <div class="field-group">
-            <label>Chairman Name <span class="required">*</span><span class="hint">Full name in Nepali</span></label>
-            <input type="text" class="np" id="ocr-chairmanName" placeholder="श्री राम शर्मा" />
-          </div>
-          <div class="field-group">
-            <label>Chairman Address <span class="required">*</span><span class="hint">In Nepali</span></label>
-            <input type="text" class="np" id="ocr-chairmanAddr" placeholder="वडा–१०, काठमाडौँ मा.न.पा" />
-          </div>
+        <div class="section-card-title"><span class="icon">👥</span> Board of Directors</div>
+        <p class="muted" style="margin-bottom:12px;">Add every director. The one with role <b>अध्यक्ष</b> chairs the meetings and signs the letters. Names in Nepali, name only (no श्री).</p>
+        <div id="ocr-directors"></div>
+        <button type="button" class="add-director-btn" id="ocr-addDirector"><span>+</span> Add director</button>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📊</span> Shareholders</div>
+        <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-shSame" checked> Shareholders are the same as directors</label></div></div>
+        <div id="ocr-shWrap" hidden>
+          <div id="ocr-shareholders"></div>
+          <button type="button" class="add-director-btn" id="ocr-addShareholder"><span>+</span> Add shareholder</button>
         </div>
       </div>
-      <div id="ocr-directors-container"></div>
-      <button class="add-director-btn" onclick="addDirector()"><span>+</span> Add Director (संचालक थप्नुहोस्)</button>
-      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(0)">← Back</button><button class="btn btn-primary" onclick="goTo(2)">Next: Dates <span class="arr">→</span></button></div>
+      <div class="nav-row"><button class="btn btn-outline" data-goto="0">← Back</button><button class="btn btn-primary" data-goto="2">Next: Dates <span class="arr">→</span></button></div>
     </div>
 
-    <!-- STEP 2 -->
+    <!-- STEP 2 — Dates -->
     <div class="step-panel" id="ocr-step-2">
       <span class="eyebrow">Step 3 of 5</span>
       <h2 class="panel-title">Dates &amp; Calendar</h2>
-      <p class="panel-subtitle">मितिहरु — नेपाली पात्रो</p>
-      <div class="section-card">
-        <div class="section-card-title"><span class="icon">📅</span> Nepali Calendar Dates</div>
-        <p class="np" style="font-size:.84rem;color:var(--slate);margin-bottom:20px;">सबै मिति नेपाली पात्रोमा लेख्नुहोस् — ढाँचा: २०८२/०९/२२</p>
-        <div class="toggle-row" onclick="toggleAuditor()">
-          <div class="toggle" id="ocr-auditorToggle"></div>
-          <label>Auditor Change Required? (लेखापरीक्षक परिवर्तन आवश्यक छ?)</label>
-        </div>
-        <div class="auditor-section" id="ocr-auditorDatesSection">
-          <div class="field-grid">
-            <div class="field-group">
-              <label>SGM Call BOD Date <span class="required">*</span><span class="hint nep">Auditor change BOD मिति — २०८२/०९/२२</span></label>
-              <div class="date-row"><input type="text" class="nepali-date" id="ocr-bodAuditorDate" placeholder="२०८२/१०/२०" /></div>
-            </div>
-            <div class="field-group">
-              <label>SGM Date <span class="required">*</span><span class="hint">Min 15 days after BOD date</span></label>
-              <div class="date-row"><input type="text" class="nepali-date" id="ocr-sgmDate" placeholder="२०८२/११/०८" /><button class="date-auto-btn" onclick="autoSGM()">Auto +15</button></div>
-              <div class="cal-tooltip" id="ocr-sgmHint"></div>
-            </div>
-          </div>
-        </div>
-        <div class="field-grid triple">
-          <div class="field-group">
-            <label>BOD Meeting Date <span class="required">*</span><span class="hint">AGM Call — २०८२/०८/०१</span></label>
-            <input type="text" class="nepali-date" id="ocr-bodDate" placeholder="२०८२/०८/०१" />
-          </div>
-          <div class="field-group">
-            <label>AGM Date <span class="required">*</span><span class="hint">Min 21 days after BOD</span></label>
-            <div class="date-row"><input type="text" class="nepali-date" id="ocr-agmDate" placeholder="२०८२/०८/२९" /><button class="date-auto-btn" onclick="autoAGM()">Auto +21</button></div>
-            <div class="cal-tooltip" id="ocr-agmHint"></div>
-          </div>
-          <div class="field-group">
-            <label>Application Date <span class="required">*</span><span class="hint">After AGM date</span></label>
-            <input type="text" class="nepali-date" id="ocr-appDate" placeholder="२०८२/०९/२९" />
-          </div>
-        </div>
-      </div>
+      <p class="panel-subtitle">मितिहरू — नेपाली पात्रो (ढाँचा: २०८३/०८/२९)</p>
       <div class="section-card">
         <div class="section-card-title"><span class="icon">📆</span> Fiscal Years</div>
         <div class="field-grid">
-          <div class="field-group">
-            <label>Current Fiscal Year <span class="required">*</span><span class="hint">Format: २०८१/०८२</span></label>
-            <input type="text" class="nepali-date" id="ocr-fiscalYear" placeholder="२०८१/०८२" />
-          </div>
-          <div class="field-group">
-            <label>Next Fiscal Year <span class="required">*</span><span class="hint">Format: २०८२/०८३</span></label>
-            <input type="text" class="nepali-date" id="ocr-nextFiscalYear" placeholder="२०८२/०८३" />
-          </div>
+          <div class="field-group"><label>Current Fiscal Year <span class="required">*</span></label><select id="ocr-fy"></select></div>
+          <div class="field-group"><label>Next Fiscal Year <span class="hint">auto</span></label><input type="text" class="np" id="ocr-nextFy" readonly></div>
         </div>
       </div>
-      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(1)">← Back</button><button class="btn btn-primary" onclick="goTo(3)">Next: Audit &amp; Capital <span class="arr">→</span></button></div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📅</span> AGM</div>
+        <div class="field-grid triple">
+          <div class="field-group"><label>BOD meeting (AGM call) <span class="required">*</span></label><input type="text" class="nepali-date dig" id="ocr-bod" placeholder="२०८३/०८/०१"></div>
+          <div class="field-group"><label>AGM date <span class="required">*</span><span class="hint">≥ 21 days after BOD</span></label><div class="date-row"><input type="text" class="nepali-date dig" id="ocr-agm" placeholder="२०८३/०८/२९"><button type="button" class="date-auto-btn" data-auto="agm">+21</button></div></div>
+          <div class="field-group"><label>Application date <span class="required">*</span><span class="hint">after AGM</span></label><input type="text" class="nepali-date dig" id="ocr-app" placeholder="२०८३/०९/२९"></div>
+          <div class="field-group"><label>AGM-call BOD time</label><input type="text" class="np" id="ocr-timeAgmBod" placeholder="दिउँसो १ बजे"></div>
+          <div class="field-group"><label>AGM time</label><input type="text" class="np" id="ocr-timeAgm" placeholder="बिहान १० बजे"></div>
+        </div>
+      </div>
+      <div class="section-card" id="ocr-sgmDatesCard" hidden>
+        <div class="section-card-title"><span class="icon">🔄</span> SGM (auditor change)</div>
+        <div class="field-grid triple">
+          <div class="field-group"><label>SGM-call BOD date <span class="required">*</span></label><input type="text" class="nepali-date dig" id="ocr-bodAuditor" placeholder="२०८३/०२/०१"></div>
+          <div class="field-group"><label>SGM date <span class="required">*</span><span class="hint">≥ 15 days after</span></label><div class="date-row"><input type="text" class="nepali-date dig" id="ocr-sgm" placeholder="२०८३/०२/१५"><button type="button" class="date-auto-btn" data-auto="sgm">+15</button></div></div>
+          <div class="field-group"><label>SGM / BOD time</label><input type="text" class="np" id="ocr-timeSgm" placeholder="११.०० बजे"></div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="btn btn-outline" data-goto="1">← Back</button><button class="btn btn-primary" data-goto="3">Next: Audit &amp; Capital <span class="arr">→</span></button></div>
     </div>
 
-    <!-- STEP 3 -->
+    <!-- STEP 3 — Audit & Capital -->
     <div class="step-panel" id="ocr-step-3">
       <span class="eyebrow">Step 4 of 5</span>
       <h2 class="panel-title">Audit &amp; Capital</h2>
       <p class="panel-subtitle">लेखापरीक्षण र पूँजी विवरण</p>
-      <div class="section-card" id="ocr-prevAuditorCard" style="display:none">
-        <div class="section-card-title"><span class="icon">🔄</span> Previous Auditor (SGM Change)</div>
+
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🔄</span> Auditor Change</div>
         <div class="field-grid">
-          <div class="field-group"><label>Previous Audit Firm Name <span class="required">*</span></label><input type="text" class="np" id="ocr-prevAuditorFirm" placeholder="ए.बि.सी. एण्ड एसोसिएट्स" /></div>
-          <div class="field-group"><label>Previous Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-prevAuditorName" placeholder="श्री अशोक शर्मा" /></div>
+          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-auditorChange"> Auditor changed during the year (adds SGM minute + appointment letter)</label></div></div>
+          <div class="field-group full" id="ocr-reasonWrap" hidden><label>Change reason</label>
+            <select id="ocr-reason"></select>
+            <input type="text" class="np" id="ocr-reasonCustom" placeholder="Custom reason phrase (…को कारण)" hidden style="margin-top:8px;">
+          </div>
         </div>
       </div>
-      <div class="section-card">
-        <div class="section-card-title"><span class="icon">📋</span> Current Year Auditor</div>
+
+      <div class="section-card" id="ocr-prevAuditorCard" hidden>
+        <div class="section-card-title"><span class="icon">⬅️</span> Previous Auditor (replaced at the SGM)</div>
         <div class="field-grid">
-          <div class="field-group"><label>Audit Firm Name <span class="required">*</span><span class="hint">This fiscal year</span></label><input type="text" class="np" id="ocr-curAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
-          <div class="field-group"><label>Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-auditorName" placeholder="श्री दिपक शर्मा" /></div>
+          <div class="field-group"><label>Previous audit firm <span class="required">*</span></label><input type="text" class="np" id="ocr-prevFirm" placeholder="ए बी सी एण्ड एसोसिएट्स"></div>
+          <div class="field-group"><label>Previous auditor name <span class="required">*</span></label><input type="text" class="np" id="ocr-prevName" placeholder="अशोक शर्मा"></div>
         </div>
       </div>
+
       <div class="section-card">
-        <div class="section-card-title"><span class="icon">📋</span> Next Year Auditor</div>
+        <div class="section-card-title"><span class="icon">📋</span> This Year's Auditor <button type="button" class="btn btn-ghost" id="ocr-ourFirmCur" style="float:right;">Our firm</button></div>
         <div class="field-grid">
-          <div class="field-group"><label>Next Year Audit Firm <span class="required">*</span></label><input type="text" class="np" id="ocr-nextAuditorFirm" placeholder="दि.इ.एफ. एण्ड एसोसियटस" /></div>
-          <div class="field-group"><label>Next Year Auditor Name <span class="required">*</span></label><input type="text" class="np" id="ocr-nextAuditorName" placeholder="श्री दिपक शर्मा" /></div>
+          <div class="field-group"><label>Audit firm <span class="required">*</span></label><input type="text" class="np" id="ocr-curFirm" placeholder="एक्स वाई जेड एण्ड एसोसिएट्स"></div>
+          <div class="field-group"><label>Auditor name <span class="required">*</span></label><input type="text" class="np" id="ocr-curName" placeholder="दिपक शर्मा"></div>
+          <div class="field-group"><label>Auditor address</label><input type="text" class="np" id="ocr-curAddr" placeholder="नयाँ बानेश्वर, काठमाडौँ"></div>
+          <div class="field-group"><label>Designation (for acceptance)</label><select id="ocr-curDesig"><option>साझेदार</option><option>प्रोप्राइटर</option></select></div>
         </div>
       </div>
+
       <div class="section-card">
-        <div class="section-card-title"><span class="icon">💰</span> Capital Details</div>
+        <div class="section-card-title"><span class="icon">➡️</span> Next Year's Auditor</div>
+        <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-nextSame" checked> Next year's auditor same as this year</label></div></div>
+        <div class="field-grid" id="ocr-nextAuditorGrid" hidden>
+          <div class="field-group"><label>Next audit firm</label><input type="text" class="np" id="ocr-nextFirm" placeholder="एक्स वाई जेड एण्ड एसोसिएट्स"></div>
+          <div class="field-group"><label>Next auditor name</label><input type="text" class="np" id="ocr-nextName" placeholder="दिपक शर्मा"></div>
+          <div class="field-group"><label>Next auditor address</label><input type="text" class="np" id="ocr-nextAddr"></div>
+          <div class="field-group"><label>Designation</label><select id="ocr-nextDesig"><option>साझेदार</option><option>प्रोप्राइटर</option></select></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">💵</span> Auditor Fee &amp; Acceptance</div>
+        <div class="field-grid">
+          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-acceptance"> Include auditor's acceptance letter(s)</label></div></div>
+          <div class="field-group"><label>Next-year appointment (C1) fee</label>
+            <select id="ocr-feeC1mode"><option value="agreement">By mutual agreement</option><option value="amount">Amount</option></select>
+            <div class="date-row" id="ocr-feeC1amt" hidden style="margin-top:8px;"><input type="text" class="np dig" id="ocr-feeC1val" placeholder="१,००,०००"><select id="ocr-feeC1vat"><option value="exclusive">VAT excl.</option><option value="inclusive">VAT incl.</option></select></div>
+          </div>
+          <div class="field-group" id="ocr-feeC2wrap"><label>New current-year (C2) fee</label>
+            <select id="ocr-feeC2mode"><option value="agreement">By mutual agreement</option><option value="amount" selected>Amount</option></select>
+            <div class="date-row" id="ocr-feeC2amt" style="margin-top:8px;"><input type="text" class="np dig" id="ocr-feeC2val" placeholder="१,००,०००"><select id="ocr-feeC2vat"><option value="exclusive">VAT excl.</option><option value="inclusive">VAT incl.</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">💰</span> Capital</div>
         <div class="field-grid triple">
-          <div class="field-group"><label>No. of Authorized Shares <span class="required">*</span><span class="hint">Number only</span></label><input type="number" id="ocr-numShares" placeholder="25000" oninput="calcCapital()" /></div>
-          <div class="field-group"><label>Authorized Capital (रु.) <span class="required">*</span><span class="hint">Auto = shares × 100</span></label><input type="text" class="np" id="ocr-authCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Issued Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-issuedCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Paid Up Capital (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-paidUpCapital" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Amount Paid (रु.) <span class="required">*</span></label><input type="text" class="np" id="ocr-paidAmt" placeholder="२५,००,०००" /></div>
-          <div class="field-group"><label>Unpaid Capital<span class="hint nep">Auto: छैन if 0</span></label><input type="text" class="np" id="ocr-unpaidCapital" placeholder="छैन" /></div>
+          <div class="field-group"><label>No. of shares <span class="required">*</span></label><input type="number" id="ocr-numShares" placeholder="25000"></div>
+          <div class="field-group"><label>Face value (रु.)</label><input type="number" id="ocr-faceValue" value="100"></div>
+          <div class="field-group"><label>Authorized capital <span class="hint">auto = shares × face value</span></label><input type="text" class="np" id="ocr-authCapital" readonly></div>
+          <div class="field-group"><label>Issued capital (रु.) <span class="required">*</span></label><input type="text" class="np dig" id="ocr-issued" placeholder="२५,००,०००"></div>
+          <div class="field-group"><label>Paid-up capital (रु.) <span class="required">*</span></label><input type="text" class="np dig" id="ocr-paidUp" placeholder="२५,००,०००"></div>
+          <div class="field-group"><label>Amount paid (रु.) <span class="hint">defaults to paid-up</span></label><input type="text" class="np dig" id="ocr-paidAmt" placeholder="२५,००,०००"></div>
+          <div class="field-group"><label>Unpaid <span class="hint">auto: छैन if 0</span></label><input type="text" class="np" id="ocr-unpaid" readonly></div>
         </div>
       </div>
-      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(2)">← Back</button><button class="btn btn-primary" onclick="goTo(4)">Next: Review <span class="arr">→</span></button></div>
+
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📑</span> Section 51 / 92 options</div>
+        <div class="field-grid">
+          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-shChanged"> Shareholders changed since last filing (§51(1) + attach list)</label></div></div>
+          <div class="field-group"><label>Loans / guarantees</label><input type="text" class="np" id="ocr-loans" placeholder="नभएको (default)"></div>
+          <div class="field-group"><label>Brokerage</label><input type="text" class="np" id="ocr-brokerage" placeholder="छैन (default)"></div>
+          <div class="field-group"><label>Forfeited shares</label><input type="text" class="np" id="ocr-forfeited" placeholder="छैन (default)"></div>
+          <div class="field-group full"><label>Investments in other companies <span class="hint">leave blank for छैन</span></label><input type="text" class="np" id="ocr-investments" placeholder="e.g. सगरमाथा प्रा.लि. (दर्ता नं. ९९९, रु. १,००,०००)"></div>
+          <div class="field-group full" id="ocr-sec92wrap"></div>
+        </div>
+      </div>
+
+      <div class="nav-row"><button class="btn btn-outline" data-goto="2">← Back</button><button class="btn btn-primary" data-goto="4">Next: Review <span class="arr">→</span></button></div>
     </div>
 
-    <!-- STEP 4 -->
+    <!-- STEP 4 — Review & Generate -->
     <div class="step-panel" id="ocr-step-4">
       <span class="eyebrow">Step 5 of 5</span>
       <h2 class="panel-title">Review &amp; Generate</h2>
       <p class="panel-subtitle">समीक्षा र कागजात निर्माण</p>
-      <div id="ocr-reviewContent"></div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">☑️</span> Choose documents</div>
+        <div id="ocr-docChoices" class="field-grid"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">📦</span> Output</div>
+        <div class="field-group full"><div class="radios">
+          <label><input type="radio" name="ocr-output" value="combined" checked> One combined Word file</label>
+          <label><input type="radio" name="ocr-output" value="zip"> Separate files (.zip)</label>
+        </div></div>
+      </div>
+      <div class="msgs" id="ocr-msgs"></div>
       <div class="generate-panel">
         <div class="generate-icon">📄</div>
         <div class="generate-title">Ready to Generate</div>
-        <div class="generate-sub" id="ocr-generateSubText">All documents will be prepared with your data.</div>
-        <div class="progress-bar-wrap" id="ocr-progressWrap">
-          <div class="progress-bar-bg"><div class="progress-bar" id="ocr-progressBar"></div></div>
-          <div class="progress-label" id="ocr-progressLabel">Preparing…</div>
-        </div>
-        <div class="generate-btns" id="ocr-generateBtns">
-          <button class="btn btn-primary" onclick="generateDocs()">Generate Word Documents <span class="arr">↓</span></button>
-        </div>
-        <div class="result-downloads" id="ocr-resultDownloads"></div>
-        <div class="err-msg" id="ocr-errMsg"></div>
-        <p class="pdf-note">Need a PDF? Open the downloaded <b>.docx</b> in Microsoft Word or Google Docs and choose <b>Save as / Download as PDF</b>.</p>
+        <div class="generate-btns"><button class="btn btn-primary" id="ocr-generate">Generate Word Documents <span class="arr">↓</span></button></div>
+        <p class="pdf-note">Need a PDF? Open the downloaded <b>.docx</b> in Word or Google Docs and choose <b>Save as PDF</b>.</p>
       </div>
-      <div class="nav-row"><button class="btn btn-outline" onclick="goTo(3)">← Back</button><div></div></div>
+      <div class="nav-row"><button class="btn btn-outline" data-goto="3">← Back</button><div></div></div>
     </div>
   </main>
 </div>
