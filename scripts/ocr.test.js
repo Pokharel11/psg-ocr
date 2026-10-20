@@ -81,6 +81,13 @@ const NEW = ["प्रस्तावहरू", "गणपूरक", "सा�
     auditors: Object.assign(JSON.parse(JSON.stringify(base().auditors)), { next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "" } }) });
   var tNoTitle = textOf(await xmlOf(noTitle));
   ok("1d. no title -> recipient is the bare name (no CA, no श्री)", tNoTitle.indexOf("दिपक शर्मा") !== -1 && tNoTitle.indexOf("सी.ए. दिपक शर्मा") === -1 && tNoTitle.indexOf("श्री दिपक शर्मा") === -1);
+  // 1e. acceptance letter (C3) sits on the audit firm's letterhead, not the company's
+  var sep3 = OCR.buildSeparate(base({ auditorChange: true, acceptance: { enabled: true, forC1: true, forC2: true } }), W);
+  var c3doc = sep3.filter(function (d) { return d.id === "c3c2"; })[0];
+  var c3xml = new PizZip(await OCR.Packer.toBuffer(c3doc.doc)).file("word/document.xml").asText();
+  var c3paras = paras(c3xml).filter(function (t) { return t.trim(); });
+  ok("1e. C3 top is the audit firm name (not the company)", c3paras[0] === "एक्स वाई जेड एण्ड एसोसिएट्स" && c3paras[0].indexOf("हिमाल") === -1);
+  ok("1e. C3 header has no company registration number", c3xml.indexOf("दर्ता नं:") === -1);
 
   // 3. §92 defaults छैन for all four items, every director; §51 defaults
   const only92 = base({ docsSelected: { sgmBod: false, sgm: false, bo: false, agmBod: false, agm: false, c1: false, c2: false, c3: false, app50: false, sec51: false } });

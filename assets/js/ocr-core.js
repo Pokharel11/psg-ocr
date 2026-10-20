@@ -148,6 +148,20 @@
     return out;
   }
   // Signature block with generous space above the line for a handwritten signature.
+  // Header for a letter sent BY the auditor (the acceptance letter): the audit
+  // firm's name/address, not the company's. No company registration number.
+  function firmHeaderBlock(W, letterhead, firm, address) {
+    var out = [];
+    if (letterhead) {
+      out.push(heading(firm, { size: 48, after: 40 }));
+      if (address) out.push(P(address, { align: "center", after: 0 }));
+      out.push(P("", { align: "center", line: true, after: 120 }));
+    } else {
+      out.push(heading(firm, { size: 28, after: 40 }));
+      if (address) out.push(P(address, { align: "center" }));
+    }
+    return out;
+  }
   function signature(name, role, company) {
     return [P(".....................................", { align: "left", before: 900, after: 0 }),
       P(name, { align: "left", after: 0 }), P(role, { align: "left", after: 0 }), P(company, { align: "left" })];
@@ -358,7 +372,8 @@
     var L = W.letters.c3, aud = which === "c2" ? data.auditors.cur : data.auditors.next;
     var fy = which === "c2" ? data.fiscal.current : data.fiscal.next;
     var letterDate = which === "c2" ? data.dates.sgm : data.dates.agm;
-    var out = headerBlock(data, W);
+    // The acceptance letter is on the audit firm's letterhead, not the company's.
+    var out = firmHeaderBlock(W, data.company.letterhead, aud.firm, aud.address);
     out.push(P(fmt(W.letters.dateLine, { date: addDays(letterDate, 1) }), { align: "right", before: 120, after: 160 }));
     out.push(P(L.to1, { align: "left", after: 0 }), P(data.company.name, { align: "left", after: 0 }), P(data.company.address || "", { align: "left", after: 160 }));
     out.push(subHead(L.subject), P(W.labels.madhoday, { align: "left" }));

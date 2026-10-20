@@ -41,7 +41,13 @@
       extra + "</div>";
     return d;
   }
-  function addDirector() { var d = personRow("director", false); $("directors").appendChild(d); if ($("directors").children.length === 1) d.querySelector('[data-f="role"]').value = "अध्यक्ष"; }
+  // First director is always the Chairman (अध्यक्ष); every one added after that
+  // defaults to Director (सञ्चालक) — never Chairman.
+  function addDirector() {
+    var first = $("directors").querySelectorAll("[data-director]").length === 0;
+    var d = personRow("director", false); $("directors").appendChild(d);
+    d.querySelector('[data-f="role"]').value = first ? "अध्यक्ष" : "सञ्चालक";
+  }
   function addShareholder() { $("shareholders").appendChild(personRow("shareholder", true)); }
   function rows(box, kind) {
     return Array.prototype.map.call($(box).querySelectorAll("[data-" + kind + "]"), function (b) {
@@ -213,7 +219,7 @@
 
   function toggleChange() {
     var on = $("auditorChange").checked;
-    $("reasonWrap").hidden = !on; $("prevAuditorCard").hidden = !on; $("sgmDatesCard").hidden = !on; $("feeC2wrap").style.display = on ? "" : "none";
+    $("reasonCard").hidden = !on; $("prevAuditorCard").hidden = !on; $("sgmDatesCard").hidden = !on; $("feeC2wrap").style.display = on ? "" : "none";
   }
 
   function generate() {

@@ -97,8 +97,12 @@
           <div class="field-group"><label>AGM time</label><input type="text" class="np" id="ocr-timeAgm" value="बिहान १० बजे"></div>
         </div>
       </div>
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🔄</span> Auditor change</div>
+        <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-auditorChange"> Auditor changed during the year (adds the SGM dates below, plus the SGM minute and the new-auditor appointment letter)</label></div></div>
+      </div>
       <div class="section-card" id="ocr-sgmDatesCard" hidden>
-        <div class="section-card-title"><span class="icon">🔄</span> SGM (auditor change)</div>
+        <div class="section-card-title"><span class="icon">🗓️</span> SGM dates (auditor change)</div>
         <div class="field-grid triple">
           <div class="field-group"><label>SGM-call BOD date <span class="required">*</span></label><input type="text" class="nepali-date dig" id="ocr-bodAuditor" placeholder="२०८३/०२/०१"></div>
           <div class="field-group"><label>SGM date <span class="required">*</span><span class="hint">≥ 15 days after</span></label><div class="date-row"><input type="text" class="nepali-date dig" id="ocr-sgm" placeholder="२०८३/०२/१५"><button type="button" class="date-auto-btn" data-auto="sgm">+15</button></div></div>
@@ -114,11 +118,10 @@
       <h2 class="panel-title">Audit &amp; Capital</h2>
       <p class="panel-subtitle">लेखापरीक्षण र पूँजी विवरण</p>
 
-      <div class="section-card">
-        <div class="section-card-title"><span class="icon">🔄</span> Auditor Change</div>
+      <div class="section-card" id="ocr-reasonCard" hidden>
+        <div class="section-card-title"><span class="icon">🔄</span> Auditor change reason <span class="hint" style="font-weight:400;">(turned on in step 3)</span></div>
         <div class="field-grid">
-          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="ocr-auditorChange"> Auditor changed during the year (adds SGM minute + appointment letter)</label></div></div>
-          <div class="field-group full" id="ocr-reasonWrap" hidden><label>Change reason</label>
+          <div class="field-group full" id="ocr-reasonWrap"><label>Change reason</label>
             <select id="ocr-reason"></select>
             <input type="text" class="np" id="ocr-reasonCustom" placeholder="Custom reason phrase (…को कारण)" hidden style="margin-top:8px;">
           </div>
