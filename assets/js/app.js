@@ -101,7 +101,7 @@
     function applyPartner() { var p = (W.firm.partners || [])[+psel.value]; if (!p) return; $(which + "Name").value = p.name; $(which + "Title").value = p.title || "सी.ए."; $(which + "Desig").value = p.designation || "साझेदार"; }
     function applyFirm() {
       if (fsel.value === "psg") { $(which + "Firm").value = W.firm.name; $(which + "Addr").value = W.firm.address || ""; wrap.hidden = false; applyPartner(); }
-      else { wrap.hidden = true; }
+      else { wrap.hidden = true; $(which + "Firm").value = ""; $(which + "Name").value = ""; $(which + "Title").value = ""; $(which + "Addr").value = ""; }
     }
     fsel.addEventListener("change", applyFirm);
     psel.addEventListener("change", applyPartner);
@@ -131,9 +131,9 @@
     var change = $("auditorChange").checked;
     var reasonPhrase = val("reasonCustom") || (($("reason").value) || "");
     var nextSame = $("nextSame").checked;
-    var dTitle = (W.defaults && W.defaults.auditorTitle) || "सी.ए.";
-    var cur = { name: val("curName"), firm: val("curFirm"), address: val("curAddr"), designation: $("curDesig").value, title: val("curTitle") || dTitle };
-    var next = nextSame ? Object.assign({}, cur) : { name: val("nextName"), firm: val("nextFirm"), address: val("nextAddr"), designation: $("nextDesig").value, title: val("nextTitle") || dTitle };
+    // Titles are taken as entered — never defaulted to CA (not every auditor is a CA).
+    var cur = { name: val("curName"), firm: val("curFirm"), address: val("curAddr"), designation: $("curDesig").value, title: val("curTitle") };
+    var next = nextSame ? Object.assign({}, cur) : { name: val("nextName"), firm: val("nextFirm"), address: val("nextAddr"), designation: $("nextDesig").value, title: val("nextTitle") };
     var feeOf = function (p) { var mode = $("fee" + p + "mode").value; return { mode: mode, amount: nepToAscii(val("fee" + p + "val")), vat: $("fee" + p + "vat").value }; };
     return {
       company: { name: val("companyName"), address: val("companyAddress"), reg: val("regNumber"), letterhead: radio("letterhead") === "yes" },
@@ -145,7 +145,7 @@
       fiscal: { current: $("fy").value, next: $("nextFy").value },
       auditorChange: change,
       reasonPhrase: reasonPhrase,
-      auditors: { prev: { name: val("prevName"), firm: val("prevFirm"), title: val("prevTitle") || dTitle }, cur: cur, next: next },
+      auditors: { prev: { name: val("prevName"), firm: val("prevFirm"), title: val("prevTitle") }, cur: cur, next: next },
       capital: { numShares: nepToAscii(val("numShares")), faceValue: nepToAscii(val("faceValue")) || 100, authCapital: val("authCapital"), issued: val("issued"), paidUp: val("paidUp"), paidAmt: val("paidAmt") || val("paidUp"), unpaid: val("unpaid") || "छैन" },
       sec92: sec92Data(),
       sec51: { shareholdersChanged: $("shChanged").checked, loans: val("loans"), brokerage: val("brokerage"), forfeited: val("forfeited"), investments: val("investments") },

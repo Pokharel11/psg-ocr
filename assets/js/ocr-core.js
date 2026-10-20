@@ -147,8 +147,9 @@
     }
     return out;
   }
+  // Signature block with generous space above the line for a handwritten signature.
   function signature(name, role, company) {
-    return [P(".....................................", { align: "left", before: 360, after: 0 }),
+    return [P(".....................................", { align: "left", before: 900, after: 0 }),
       P(name, { align: "left", after: 0 }), P(role, { align: "left", after: 0 }), P(company, { align: "left" })];
   }
   function members(data) {
@@ -319,11 +320,13 @@
     var tmpl = fee.vat === "inclusive" ? W.letters.fee.inclusive : W.letters.fee.exclusive;
     return fmt(tmpl, { amount: groupNep(fee.amount), amountWords: amountWordsNep(fee.amount) });
   }
-  function titleOf(W, aud) { return (aud && aud.title) || (W.defaults && W.defaults.auditorTitle) || "सी.ए."; }
+  // Honorific prefix for an auditor: "<title> " when a title is given, else ""
+  // (titles are never assumed — not every auditor is a CA).
+  function honor(aud) { var t = aud && aud.title ? String(aud.title).trim() : ""; return t ? t + " " : ""; }
   function auditorLetterHead(data, W, auditor, dateStr) {
     var out = headerBlock(data, W);
     out.push(P(fmt(W.letters.dateLine, { date: dateStr }), { align: "right", before: 120, after: 160 }));
-    out.push(P(titleOf(W, auditor) + " " + auditor.name, { align: "left", after: 0 }));
+    out.push(P(honor(auditor) + auditor.name, { align: "left", after: 0 }));
     out.push(P(auditor.firm, { align: "left", after: 0 }));
     out.push(P(W.letters.firmLine2, { align: "left", after: 0 }));
     out.push(P(auditor.address || "", { align: "left", after: 160 }));
@@ -343,7 +346,7 @@
     var L = W.letters.c2, ch = chair(data), out = auditorLetterHead(data, W, data.auditors.cur, data.dates.sgm);
     out.push(subHead(L.subject), P(W.labels.madhoday, { align: "left" }));
     out.push(P(fmt(L.body, { company: data.company.name, fy: data.fiscal.current, prevFirm: data.auditors.prev.firm,
-      prevTitle: titleOf(W, data.auditors.prev), prevAuditor: data.auditors.prev.name, reason: data.reasonPhrase, sgm: data.dates.sgm }), {}));
+      prevTitle: honor(data.auditors.prev), prevAuditor: data.auditors.prev.name, reason: data.reasonPhrase, sgm: data.dates.sgm }), {}));
     out.push(P(feeLine(W, data.fee && data.fee.c2), {}));
     out.push(P(L.close, {}));
     out.push(P(W.labels.bhabadiya, { align: "left", before: 120 }));
@@ -361,7 +364,7 @@
     out.push(subHead(L.subject), P(W.labels.madhoday, { align: "left" }));
     out.push(P(fmt(L.body, { letterDate: letterDate, fy: fy }), {}));
     out.push(P(W.labels.bhabadiya, { align: "left", before: 120 }));
-    out.push.apply(out, signature(titleOf(W, aud) + " " + aud.name, aud.designation || "साझेदार", aud.firm));
+    out.push.apply(out, signature(honor(aud) + aud.name, aud.designation || "साझेदार", aud.firm));
     return out;
   }
 

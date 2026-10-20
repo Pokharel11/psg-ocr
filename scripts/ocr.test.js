@@ -76,6 +76,11 @@ const NEW = ["प्रस्तावहरू", "गणपूरक", "सा�
   // auditor title (सी.ए.) used in the letters instead of श्री
   ok("1c. letter recipient uses the title: 'सी.ए. दिपक शर्मा'", tOn.indexOf("सी.ए. दिपक शर्मा") !== -1);
   ok("1c. C2 body previous auditor uses title: 'का सी.ए. अशोक शर्मा'", tOn.indexOf("का सी.ए. अशोक शर्मा") !== -1);
+  // 1d. title is never assumed: an auditor with no title gets no honorific (no CA, no श्री)
+  var noTitle = base({ docsSelected: { c1: true, sgmBod: false, sgm: false, bo: false, agmBod: false, agm: false, c2: false, c3: false, app50: false, sec92: false, sec51: false },
+    auditors: Object.assign(JSON.parse(JSON.stringify(base().auditors)), { next: { name: "दिपक शर्मा", firm: "एक्स वाई जेड एण्ड एसोसिएट्स", address: "नयाँ बानेश्वर, काठमाडौँ", designation: "साझेदार", title: "" } }) });
+  var tNoTitle = textOf(await xmlOf(noTitle));
+  ok("1d. no title -> recipient is the bare name (no CA, no श्री)", tNoTitle.indexOf("दिपक शर्मा") !== -1 && tNoTitle.indexOf("सी.ए. दिपक शर्मा") === -1 && tNoTitle.indexOf("श्री दिपक शर्मा") === -1);
 
   // 3. §92 defaults छैन for all four items, every director; §51 defaults
   const only92 = base({ docsSelected: { sgmBod: false, sgm: false, bo: false, agmBod: false, agm: false, c1: false, c2: false, c3: false, app50: false, sec51: false } });

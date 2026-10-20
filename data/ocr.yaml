@@ -26,7 +26,8 @@ defaults:
   brokerage: "छैन"
   forfeited: "छैन"
   sec92: "छैन"     # default for items क, ख, ग, घ for every director
-  auditorTitle: "सी.ए."  # honorific used for auditors in the letters (instead of श्री)
+  # No default auditor title — titles are never assumed (not every auditor is a CA).
+  # PSG partners carry their own title (सी.ए.) in the firm block below.
 
 # The firm, for the auditor "firm selector" quick-fill (this year / next year /
 # new auditor on change). Selecting PSG fills the firm, address and a partner.
@@ -179,7 +180,7 @@ letters:
     close: "अतः उक्त नियुक्ति स्वीकार गरी प्रचलित कानून बमोजिम लेखापरीक्षण कार्य सम्पन्न गरिदिनुहुन अनुरोध गर्दछौं ।"
   c2:
     subject: "विषय: लेखापरीक्षक नियुक्ति सम्बन्धमा ।"
-    body: "यस {company} को वार्षिक साधारण सभाले आर्थिक वर्ष {fy} को लागि नियुक्त गरेका लेखापरीक्षक {prevFirm} का {prevTitle} {prevAuditor} को {reason} यस कम्पनीको मिति {sgm} गते बसेको विशेष साधारण सभाको निर्णय बमोजिम लेखापरीक्षक परिवर्तन गरी आर्थिक वर्ष {fy} को लेखापरीक्षण कार्यका लागि तपाईंलाई यस कम्पनीको लेखापरीक्षकमा नियुक्त गरिएको व्यहोरा जानकारी गराउँदछौं ।"
+    body: "यस {company} को वार्षिक साधारण सभाले आर्थिक वर्ष {fy} को लागि नियुक्त गरेका लेखापरीक्षक {prevFirm} का {prevTitle}{prevAuditor} को {reason} यस कम्पनीको मिति {sgm} गते बसेको विशेष साधारण सभाको निर्णय बमोजिम लेखापरीक्षक परिवर्तन गरी आर्थिक वर्ष {fy} को लेखापरीक्षण कार्यका लागि तपाईंलाई यस कम्पनीको लेखापरीक्षकमा नियुक्त गरिएको व्यहोरा जानकारी गराउँदछौं ।"
     close: "अतः उक्त नियुक्ति स्वीकार गरी प्रचलित कानून बमोजिम लेखापरीक्षण कार्य सम्पन्न गरिदिनुहुन अनुरोध गर्दछौं ।"
   c3:
     to1: "श्री सञ्चालक समिति"
