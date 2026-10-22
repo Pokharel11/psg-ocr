@@ -82,7 +82,7 @@ documents reformatted in Word). The file attached on 2026-10-20 was only the 3
 auditor letters — not enough. When it arrives: build the docx template from it →
 `ocr-core` fills it → visual test → regenerate samples → deploy after approval.
 
-## Tax Docs — Balance Confirmation (branch `tax-docs-balance-confirmation`, NOT yet deployed)
+## Tax Docs — Balance Confirmation (LIVE, deployed 2026-10-22)
 Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. **Authoritative reference (fake
 data): `docs/tax-docs/Balance_Confirmation_Reference.docx`** — the user's reformatted single
 letter (2026-10-22): **Georgia** letterhead with a **sender VAT/PAN line**, **Aptos 11pt** body,
@@ -119,7 +119,9 @@ earlier format and are **superseded** by this file. Upload template:
   generated Sagarmatha letter vs the reformatted reference). Samples: `npm run balance-samples`
   (writes to `samples/balance-confirmation/`, gitignored). Verified end-to-end in the browser
   (earlier format): the generated combined/zip/register/Annexure bytes were identical to the Node samples.
-- **Open:** partner has not confirmed wording/figures; awaiting the user's approval to deploy.
+- **LIVE** (merged to `main` + FTPS-deployed 2026-10-22; rollback tag **`pre-tax-docs`**). Verified
+  live: `home.php` 302, `templates/*` 403, `docs/*` 404, public JS 200, `portal.js` has `tax-balance`.
+  **Open:** partner still to confirm wording/figures (the letter data is partner-unverified).
 
 ## Security / gating (don't regress)
 - `data/` and `templates/` are **login-gated**: a `.htaccess` in each routes every
@@ -156,7 +158,6 @@ Roll back: `git reset --hard <tag> && git push --force origin main`.
   the amount-in-words 1–99 table, and the new/variant letter wording.
 
 ## Immediate next step
-- **Tax Docs / Balance Confirmation** is built and fully tested on branch
-  `tax-docs-balance-confirmation` (tag `pre-tax-docs` marks `main` before it). Waiting on the
-  user's review of the samples + approval to merge/deploy. Partner must still confirm wording/figures.
+- **Tax Docs / Balance Confirmation** is LIVE (deployed 2026-10-22, `main` HEAD `e429231`, rollback
+  tag `pre-tax-docs`). Only open item: a partner confirming the letter wording/figures.
 - OCR Stage 2: still blocked on the reformatted full `OCR_2` file from the user.
