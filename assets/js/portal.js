@@ -12,7 +12,7 @@
  */
 (function () {
   "use strict";
-  var V = "20261020";
+  var V = "20261022";
 
   // Registry: tool id -> ordered list of scripts to load on first open. The last
   // script in each list registers window.PortalTools[id] = { init }. Dependencies
@@ -62,6 +62,18 @@
       "assets/js/common/bank-ui.js",
       "assets/js/bank-statement-core.js",
       "assets/js/bank-statement.js?v=" + V
+    ],
+    "tax-balance": [
+      "assets/js/pizzip.min.js",
+      "assets/js/docxtemplater.min.js",
+      "assets/js/xlsx.full.min.js",
+      "assets/js/nepali-date.umd.js",
+      "assets/js/common/psg-num.js",
+      "assets/js/common/psg-bsdate.js",
+      "assets/js/common/docx-engine.js",
+      "assets/js/balance-confirmation-core.js",
+      "assets/js/balance-confirmation-xlsx.js",
+      "assets/js/balance-confirmation.js?v=" + V
     ]
   };
 
@@ -83,7 +95,7 @@
     return list.reduce(function (p, src) { return p.then(function () { return loadScript(src); }); }, Promise.resolve());
   }
 
-  var VALID = { "ocr-docs": 1, "audit-docs": 1, "bank-docs": 1 };
+  var VALID = { "ocr-docs": 1, "audit-docs": 1, "bank-docs": 1, "tax-docs": 1 };
 
   function showCompartment(id, save) {
     if (!VALID[id]) id = "ocr-docs";

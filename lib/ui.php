@@ -20,6 +20,7 @@ function app_header(array $user): string {
     <button type="button" class="comp-tab" data-compartment="ocr-docs">OCR Docs</button>
     <button type="button" class="comp-tab" data-compartment="audit-docs">Audit Docs</button>
     <button type="button" class="comp-tab" data-compartment="bank-docs">Bank Docs</button>
+    <button type="button" class="comp-tab" data-compartment="tax-docs">Tax Docs</button>
   </nav>
   <div class="appbar-right">
     <span class="appbar-user" title="Signed in"><span class="who">{$name}</span></span>
@@ -87,7 +88,7 @@ HTML;
  * Every existing URL serves THIS page; only the default compartment differs.
  */
 function render_portal(array $user, string $default = ''): void {
-    $assets_v = '20261020';
+    $assets_v = '20261022';
     $head = app_header($user);
 
     // OCR Docs
@@ -113,6 +114,13 @@ function render_portal(array $user, string $default = ''): void {
       . tool_pane('bank-statement', 'Back to Bank Docs', tool_fragment('tool-bank-statement.html'));
     $bank = compartment('bank-docs', 'Bank Docs', 'Bank Documents',
         'Bank account paperwork, generated in your browser.', $bankCards, $bankPanes);
+
+    // Tax Docs — one tool: Balance Confirmation.
+    $taxCards = tool_card('tax-balance', '🧾', 'Balance Confirmation',
+        'Balance-confirmation letters with the Annexure 13 transaction summary, for one party or in bulk from an Excel upload.');
+    $taxPanes = tool_pane('tax-balance', 'Back to Tax Docs', tool_fragment('tool-tax-balance.html'));
+    $tax = compartment('tax-docs', 'Tax Docs', 'Tax Documents',
+        'Tax and VAT paperwork, generated in your browser.', $taxCards, $taxPanes);
 
     header('Content-Type: text/html; charset=utf-8');
     header('Cache-Control: no-cache, must-revalidate');
@@ -141,6 +149,7 @@ function render_portal(array $user, string $default = ''): void {
 {$ocr}
 {$audit}
 {$bank}
+{$tax}
 </div>
 
 <script src="assets/js/portal.js?v={$assets_v}"></script>

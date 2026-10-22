@@ -17,9 +17,9 @@ Three sibling properties, three repos, all auto-deploy from GitHub `main` via FT
 - **psg-website** (`Pokharel11/psg-website`) → main site; has the compliance calendar.
 - **psg-drs** — PHP/MySQL staff daily-reporting app (the login source).
 
-## The portal (one page, three compartments, no new URLs)
-After login, `lib/ui.php` `render_portal()` serves ONE page with three compartments —
-**OCR Docs**, **Audit Docs**, **Bank Docs** — switched by `assets/js/portal.js`
+## The portal (one page, four compartments, no new URLs)
+After login, `lib/ui.php` `render_portal()` serves ONE page with four compartments —
+**OCR Docs**, **Audit Docs**, **Bank Docs**, **Tax Docs** — switched by `assets/js/portal.js`
 (lazy-loads each tool's scripts on first open; remembers the last compartment in
 localStorage; existing URLs `/`, `/audit-letters.php`, `/home.php` just set the
 default compartment via `<body data-default-compartment>`). Per-tool ids are
@@ -30,11 +30,19 @@ Tools:
 - **OCR Docs → OCR Automation** — Office of the Company Registrar annual filing set.
 - **Audit Docs → Audit Letters** — appointment / engagement / MRL letters.
 - **Bank Docs → Account Opening** and **Statement Request**.
+- **Tax Docs → Balance Confirmation** — balance-confirmation letters + Annexure 13
+  summary, one party (form) or many (Excel upload); docxtemplater + vendored SheetJS.
 
 ## Shared libraries (used across tools, so they never drift)
 - `assets/js/common/docx-engine.js` (`PSGDocx`) — docxtemplater fill + highlight strip + section split (Audit/Bank).
 - `assets/js/common/psg-num.js` (`PSGNum`), `assets/js/common/psg-bsdate.js` (`PSGBSDate`) — numbers + BS/AD dates. **Calendar range BS 2000–2090** (the `nepali-date-converter` 3.4.0 `dateConfigMap`; latest version). The website's `src/_data/compliance.js` uses its **own independent copy of the same library** — already in sync; don't extend without extending both.
 - `assets/js/common/bank-common.js`, `bank-ui.js` — shared Bank Docs logic + members editor.
+- `assets/js/common/docx-engine.js` strips the reference's yellow highlights from the
+  body **and header/footer parts** (Tax Docs puts the letterhead in a header).
+- `assets/js/common/psg-bsdate.js` adds `fyAshadEndYMD(startYear)` — the "as on" date
+  (last day of Ashad of the FY end year, e.g. 2082 -> "2083/03/32").
+- `assets/js/xlsx.full.min.js` — vendored **SheetJS 0.18.5** (UMD; works in the browser
+  and in Node tests). Tax Docs reads uploads and writes the register / Annexure 13 with it.
 - `data/entities.yaml` — one shared entity file for Audit + Bank (`bank:` and `bank_statement:` blocks per entity).
 
 ## OCR Docs — the current focus
@@ -74,6 +82,39 @@ documents reformatted in Word). The file attached on 2026-10-20 was only the 3
 auditor letters — not enough. When it arrives: build the docx template from it →
 `ocr-core` fills it → visual test → regenerate samples → deploy after approval.
 
+## Tax Docs — Balance Confirmation (branch `tax-docs-balance-confirmation`, NOT yet deployed)
+Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. References (fake data):
+`docs/tax-docs/Balance_Confirmation_Template_{With,No}_Letterhead.docx` (two letters each),
+`docs/tax-docs/Balance_Confirmation_Upload_Template.xlsx` (Instructions / Data / Example sheets).
+- **docxtemplater method** like Audit/Bank. `scripts/build-balance-confirmation-template.js`
+  builds `templates/balance-confirmation-template.docx` from the With-Letterhead reference:
+  one letter inside a `{#letters}` loop, a **condition on every optional row and on the
+  purchase / sales blocks** (`{#show_purchase}` / `{#has_exempt_purchase}` / …), and computed
+  `(A)`/`(A+B)` and `(C)`/`(C+D)` labels. The **letterhead was moved into a first-page section
+  header** (`word/header1.xml`, `{#letterhead}`-conditioned; `header2.xml` empty default) so it
+  shows only on the first page of each letter and never repeats; each letter is its own section
+  (next-page break between letters, shared header part since the sender is constant per batch).
+  Paragraph formatting, table borders/widths and the signature layout are untouched.
+- **Logic** `assets/js/balance-confirmation-core.js` (pure): figures (section 6), row/block
+  visibility (filled = non-zero), validation (section 5), `templateData`, and the Annexure 13 /
+  register row shapes. **Spreadsheet I/O** `assets/js/balance-confirmation-xlsx.js` (SheetJS):
+  reads uploads by matching header **names** (not position; reads "Data" else the first matching
+  sheet, never "Example"/"Instructions"), writes the register and the Annexure 13 export.
+- **UI** `assets/js/balance-confirmation.js` + `partials/tool-tax-balance.html` (ids `tax-bc-`):
+  Individual (form) and Bulk (upload + preview grid with tick/untick + status). Shared FY dropdown
+  (2060/61–2089/90, capped at BS 2090), automatic BS "as on" date, letterhead / hide-empty-block /
+  highlight options. Outputs: one `.docx`; combined `.docx`; separate files `.zip`; the register
+  `.xlsx`; the Annexure 13 `.xlsx`. The "Download Excel template" button serves the login-gated
+  `templates/balance-confirmation-upload-template.xlsx`.
+- **The Example sheet was corrected** (its optional-tail cells were in the wrong columns and could
+  not reproduce the reference letters): Sagarmatha `111`→TDS-by-us, `1245`→Retention; Manaslu
+  `444`→TDS-by-party. With that, name-matching + the Example reproduces both letters exactly.
+- Tests: `scripts/balance-confirmation.test.js` (41, spec section 9, incl. parity vs both reference
+  letters). Samples: `npm run balance-samples` (writes to `samples/balance-confirmation/`, gitignored).
+  Verified end-to-end in the browser: the generated combined/zip/register/Annexure bytes are
+  identical to the Node samples.
+- **Open:** partner has not confirmed wording/figures; awaiting the user's approval to deploy.
+
 ## Security / gating (don't regress)
 - `data/` and `templates/` are **login-gated**: a `.htaccess` in each routes every
   request to `protected-asset.php`, which runs the portal's `current_user()` check and
@@ -85,14 +126,15 @@ auditor letters — not enough. When it arrives: build the docx template from it
 
 ## Commands
 ```
-npm test            # audit 51 + bank 23 + statement 29 + ocr 66 = 169
+npm test            # audit 51 + bank 23 + statement 29 + ocr 66 + balance 41 = 210
+npm run balance-samples  # Balance Confirmation samples (combined, zip, letter, register, annexure)
 npm run ocr-samples # OCR sample sets (auditor change on/off, shareholders-different)
 npm run samples / bank-samples / statement-samples
 node scripts/build-bank-statement-template.js   # rebuild a Bank template from its reference
 ```
 `docx@9.6.1` is a devDependency so Node tests build real .docx (browser uses the
 vendored `assets/js/docx.min.js`). Deploy excludes `scripts/`, `samples/`, `docs/`,
-`node_modules/`, `package.json`, `config.php`, `README.md`, `.github/`.
+`node_modules/`, `package.json`, `config.php`, `README.md`, `.github/`, `.claude/`, `_dev*`.
 
 ## Branches & rollback tags
 `main` = everything above, deployed (HEAD `63673e0`). Feature branches were merged
@@ -108,4 +150,7 @@ Roll back: `git reset --hard <tag> && git push --force origin main`.
   the amount-in-words 1–99 table, and the new/variant letter wording.
 
 ## Immediate next step
-Get the reformatted full `OCR_2` file from the user → do **Stage 2**.
+- **Tax Docs / Balance Confirmation** is built and fully tested on branch
+  `tax-docs-balance-confirmation` (tag `pre-tax-docs` marks `main` before it). Waiting on the
+  user's review of the samples + approval to merge/deploy. Partner must still confirm wording/figures.
+- OCR Stage 2: still blocked on the reformatted full `OCR_2` file from the user.

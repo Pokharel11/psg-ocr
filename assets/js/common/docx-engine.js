@@ -27,9 +27,14 @@
     doc.render(data);
     var out = doc.getZip();
     if (!opts.highlight) {
-      // Normal output: no yellow highlights. (Review mode keeps them, as in the reference.)
-      var xml = out.file("word/document.xml").asText().replace(/<w:highlight w:val="yellow"\/>/g, "");
-      out.file("word/document.xml", xml);
+      // Normal output: no yellow highlights, in the body AND any header/footer
+      // parts (the Balance Confirmation letterhead lives in a header). Review
+      // mode keeps them, as in the reference.
+      Object.keys(out.files).forEach(function (name) {
+        if (/^word\/(document|header\d*|footer\d*)\.xml$/.test(name)) {
+          out.file(name, out.file(name).asText().replace(/<w:highlight w:val="yellow"\/>/g, ""));
+        }
+      });
     }
     return out;
   }

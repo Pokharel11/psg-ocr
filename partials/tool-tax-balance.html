@@ -1,0 +1,124 @@
+<!-- Tax Docs > Balance Confirmation — tool markup (ids/names prefixed tax-bc-).
+     Logic in assets/js/balance-confirmation.js. Rendered inside the Tax Docs
+     compartment. Everything is generated in the browser; nothing is uploaded. -->
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">Tax Docs</span>
+    <h1 class="panel-title">Balance Confirmation</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Generate balance-confirmation letters (with the Annexure 13 transaction summary) for one party or for many at once from an Excel upload. Everything is generated in your browser, nothing is sent or stored.</p>
+
+    <div style="margin-bottom:14px;">
+      <button type="button" class="btn btn-ghost" id="tax-bc-copy">⃪ Copy sender from Bank Docs</button>
+    </div>
+
+    <form id="tax-bc-form" autocomplete="off">
+      <!-- Sender -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Sender</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Company name <span class="required">*</span></label><input id="tax-bc-senderName" placeholder="e.g. Himal Traders Private Limited"></div>
+          <div class="field-group"><label>Company PAN <span class="hint">9 digits</span></label><input id="tax-bc-senderPan" placeholder="e.g. 999999999"></div>
+          <div class="field-group"><label>Company address <span class="hint">shown in the letterhead</span></label><input id="tax-bc-senderAddress" placeholder="e.g. Kathmandu-10, Kathmandu"></div>
+          <div class="field-group"><label>Signatory name <span class="required">*</span></label><input id="tax-bc-signatoryName" placeholder="e.g. Ram Bahadur Thapa"></div>
+          <div class="field-group"><label>Signatory designation</label><input id="tax-bc-signatoryDesignation" placeholder="e.g. Chairman"></div>
+        </div>
+      </div>
+
+      <!-- Period -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🗓️</span> Fiscal year &amp; dates</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Fiscal year <span class="required">*</span></label><select id="tax-bc-fy"></select></div>
+          <div class="field-group"><label>"As on" date (BS) <span class="hint">auto: last day of Ashad</span></label>
+            <input id="tax-bc-asOn" placeholder="YYYY/MM/DD">
+            <div class="hint" id="tax-bc-asOnNote" hidden style="color:var(--brass);margin-top:4px;">Edited from the automatic fiscal-year-end date.</div>
+          </div>
+          <div class="field-group"><label>Letter date (BS)</label><input id="tax-bc-letterDate" placeholder="YYYY/MM/DD"></div>
+          <div class="field-group"><label>Response period (days)</label><input id="tax-bc-responseDays" type="number" min="1" value="15"></div>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">⚙️</span> Options</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Letterhead</label>
+            <div class="radios">
+              <label><input type="radio" name="tax-bc-letterhead" value="yes" checked> Include letterhead</label>
+              <label><input type="radio" name="tax-bc-letterhead" value="no"> No letterhead required</label>
+            </div>
+          </div>
+          <div class="field-group"><label>Empty blocks</label>
+            <div class="radios">
+              <label><input type="checkbox" id="tax-bc-hideEmpty" checked> Hide an empty purchase or sales block</label>
+            </div>
+          </div>
+          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="tax-bc-highlight"> Highlight filled values for review (yellow)</label></div></div>
+        </div>
+      </div>
+
+      <!-- Mode -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🧭</span> Mode</div>
+        <div class="radios" id="tax-bc-mode">
+          <label><input type="radio" name="tax-bc-mode" value="individual" checked> Individual (one letter)</label>
+          <label><input type="radio" name="tax-bc-mode" value="bulk"> Bulk (upload Excel)</label>
+        </div>
+      </div>
+
+      <!-- Individual -->
+      <div class="section-card" id="tax-bc-individualCard">
+        <div class="section-card-title"><span class="icon">👤</span> Party &amp; transactions</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Party name <span class="required">*</span></label><input data-f="tradename" placeholder="Party name"></div>
+          <div class="field-group"><label>Party VAT/PAN <span class="required">*</span></label><input data-f="pan" placeholder="9 digits"></div>
+          <div class="field-group full"><label>Party address <span class="required">*</span></label><input data-f="receiverAddress" placeholder="e.g. Thimi, Bhaktapur"></div>
+
+          <div class="field-group"><label>Opening balance</label><input data-f="opening" placeholder="0"></div>
+          <div class="field-group"><label>Opening Dr/Cr</label><select data-f="openingDrCr"><option value="">—</option><option>Dr.</option><option>Cr.</option></select></div>
+          <div class="field-group"><label>Closing balance</label><input data-f="closing" placeholder="0"></div>
+          <div class="field-group"><label>Closing Dr/Cr</label><select data-f="closingDrCr"><option value="">—</option><option>Dr.</option><option>Cr.</option></select></div>
+
+          <div class="field-group"><label>Service purchase (capital)</label><input data-f="servicePurchaseCapital" placeholder="0"></div>
+          <div class="field-group"><label>Service purchase (others)</label><input data-f="servicePurchaseOthers" placeholder="0"></div>
+          <div class="field-group"><label>Goods purchase (capital)</label><input data-f="goodPurchaseCapital" placeholder="0"></div>
+          <div class="field-group"><label>Goods purchase (others)</label><input data-f="goodPurchaseOthers" placeholder="0"></div>
+          <div class="field-group"><label>Service sales</label><input data-f="serviceSales" placeholder="0"></div>
+          <div class="field-group"><label>Goods sales</label><input data-f="goodSales" placeholder="0"></div>
+
+          <div class="field-group"><label>Exempt purchase</label><input data-f="exemptPurchase" placeholder="0"></div>
+          <div class="field-group"><label>Exempt sales</label><input data-f="exemptSales" placeholder="0"></div>
+          <div class="field-group"><label>Purchase return</label><input data-f="purchaseReturn" placeholder="0"></div>
+          <div class="field-group"><label>Sales return</label><input data-f="salesReturn" placeholder="0"></div>
+          <div class="field-group"><label>VAT on purchase <span class="hint">blank = auto</span></label><input data-f="vatPurchase" placeholder="auto"></div>
+          <div class="field-group"><label>VAT on sales <span class="hint">blank = auto</span></label><input data-f="vatSales" placeholder="auto"></div>
+          <div class="field-group"><label>TDS deducted by us</label><input data-f="tdsUs" placeholder="0"></div>
+          <div class="field-group"><label>TDS deducted by party</label><input data-f="tdsParty" placeholder="0"></div>
+          <div class="field-group"><label>Retention money</label><input data-f="retention" placeholder="0"></div>
+        </div>
+      </div>
+
+      <!-- Bulk -->
+      <div class="section-card" id="tax-bc-bulkCard" hidden>
+        <div class="section-card-title"><span class="icon">📄</span> Upload</div>
+        <div style="margin-bottom:12px;">
+          <a class="btn btn-ghost" id="tax-bc-template" href="templates/balance-confirmation-upload-template.xlsx" download>⬇ Download Excel template</a>
+        </div>
+        <div class="field-group full"><label>Excel file (.xlsx)</label><input type="file" id="tax-bc-file" accept=".xlsx,.xls"></div>
+        <div id="tax-bc-preview" style="margin-top:14px;overflow:auto;"></div>
+      </div>
+
+      <div class="msgs" id="tax-bc-msgs"></div>
+      <div class="actions" id="tax-bc-actionsIndividual">
+        <button type="button" class="btn btn-primary" id="tax-bc-genIndividual">Download letter <span class="arr">↓</span></button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+      <div class="actions" id="tax-bc-actionsBulk" hidden>
+        <button type="button" class="btn btn-primary" id="tax-bc-genCombined">Combined document <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-ghost" id="tax-bc-genZip">Separate files (.zip) <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-ghost" id="tax-bc-genRegister">Confirmation register <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-ghost" id="tax-bc-genAnnexure">Annexure 13 export <span class="arr">↓</span></button>
+      </div>
+    </form>
+  </div>
+</main>

@@ -28,6 +28,8 @@ jobs:
             **/.git*
             **/.git*/**
             **/.github/**
+            **/.claude/**
+            _dev*
             README.md
             config.php
             scripts/**

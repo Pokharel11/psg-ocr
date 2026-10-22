@@ -39,6 +39,10 @@
     var endY = startYear + 1, day = bsMonthDays(endY, ASHAD);
     return { y: endY, m0: ASHAD, day: day, adUTC: bsToAdUTC(endY, ASHAD, day) };
   }
+  function pad2(x) { x = String(x); return x.length < 2 ? "0" + x : x; }
+  // FY start year -> its Ashad end as a BS "YYYY/MM/DD" string (the balance
+  // confirmation "as on" date, e.g. 2082 -> "2083/03/32", 2080 -> "2081/03/31").
+  function fyAshadEndYMD(startYear) { var e = fyEnd(startYear); return e.y + "/" + pad2(e.m0 + 1) + "/" + pad2(e.day); }
   function fyShort(startYear) { return "FY " + startYear + "/" + String(startYear + 1).slice(-2); }
   function fyLabel(fromY, toY) { return fromY === toY ? fyShort(fromY) : fyShort(fromY) + " to " + fyShort(toY); }
 
@@ -46,6 +50,6 @@
     BS_MONTHS: BS_MONTHS, BS_CFG: BS_CFG, AD_MONTHS: AD_MONTHS, ASHAD: ASHAD, DAY: DAY,
     bsMonthDays: bsMonthDays, bsToAdUTC: bsToAdUTC, adUTCtoBS: adUTCtoBS,
     formatBS: formatBS, formatAD: formatAD, addBSDays: addBSDays,
-    fyEnd: fyEnd, fyShort: fyShort, fyLabel: fyLabel,
+    fyEnd: fyEnd, fyAshadEndYMD: fyAshadEndYMD, fyShort: fyShort, fyLabel: fyLabel,
   };
 });
