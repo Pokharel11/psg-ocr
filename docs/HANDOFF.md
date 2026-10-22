@@ -83,18 +83,24 @@ auditor letters — not enough. When it arrives: build the docx template from it
 `ocr-core` fills it → visual test → regenerate samples → deploy after approval.
 
 ## Tax Docs — Balance Confirmation (branch `tax-docs-balance-confirmation`, NOT yet deployed)
-Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. References (fake data):
-`docs/tax-docs/Balance_Confirmation_Template_{With,No}_Letterhead.docx` (two letters each),
+Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. **Authoritative reference (fake
+data): `docs/tax-docs/Balance_Confirmation_Reference.docx`** — the user's reformatted single
+letter (2026-10-22): **Georgia** letterhead with a **sender VAT/PAN line**, **Aptos 11pt** body,
+shortened subject ("Balance Confirmation and Transaction details", names dropped), and extra
+**signing space**. The original `Balance_Confirmation_Template_{With,No}_Letterhead.docx` are the
+earlier format and are **superseded** by this file. Upload template:
 `docs/tax-docs/Balance_Confirmation_Upload_Template.xlsx` (Instructions / Data / Example sheets).
 - **docxtemplater method** like Audit/Bank. `scripts/build-balance-confirmation-template.js`
-  builds `templates/balance-confirmation-template.docx` from the With-Letterhead reference:
-  one letter inside a `{#letters}` loop, a **condition on every optional row and on the
-  purchase / sales blocks** (`{#show_purchase}` / `{#has_exempt_purchase}` / …), and computed
-  `(A)`/`(A+B)` and `(C)`/`(C+D)` labels. The **letterhead was moved into a first-page section
-  header** (`word/header1.xml`, `{#letterhead}`-conditioned; `header2.xml` empty default) so it
-  shows only on the first page of each letter and never repeats; each letter is its own section
-  (next-page break between letters, shared header part since the sender is constant per batch).
-  Paragraph formatting, table borders/widths and the signature layout are untouched.
+  builds `templates/balance-confirmation-template.docx` by inserting tags into a COPY of the
+  reformatted reference (so Georgia/Aptos fonts, borders/widths, signature layout + signing space
+  carry over verbatim): one letter inside a `{#letters}` loop, a **condition on every optional row
+  and on the purchase / sales blocks** (`{#show_purchase}` / `{#has_exempt_purchase}` / …), and
+  computed `(A)`/`(A+B)` and `(C)`/`(C+D)` labels. The amount rows are cloned from the reference
+  table's own non-bold/bold prototype rows. The **letterhead is a first-page section header**
+  (`word/header1.xml`: name / address / `VAT/PAN: {entity_pan}` / rule, `{#letterhead}`-conditioned;
+  empty `header2`/`header3` default) shown only on the first page of each letter and never repeated;
+  each letter is its own next-page section, all referencing the one header (the sender is constant
+  per batch). `entity_pan` is the sender PAN from the form.
 - **Logic** `assets/js/balance-confirmation-core.js` (pure): figures (section 6), row/block
   visibility (filled = non-zero), validation (section 5), `templateData`, and the Annexure 13 /
   register row shapes. **Spreadsheet I/O** `assets/js/balance-confirmation-xlsx.js` (SheetJS):
@@ -109,10 +115,10 @@ Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. References (fake da
 - **The Example sheet was corrected** (its optional-tail cells were in the wrong columns and could
   not reproduce the reference letters): Sagarmatha `111`→TDS-by-us, `1245`→Retention; Manaslu
   `444`→TDS-by-party. With that, name-matching + the Example reproduces both letters exactly.
-- Tests: `scripts/balance-confirmation.test.js` (41, spec section 9, incl. parity vs both reference
-  letters). Samples: `npm run balance-samples` (writes to `samples/balance-confirmation/`, gitignored).
-  Verified end-to-end in the browser: the generated combined/zip/register/Annexure bytes are
-  identical to the Node samples.
+- Tests: `scripts/balance-confirmation.test.js` (40, spec section 9, incl. exact parity of the
+  generated Sagarmatha letter vs the reformatted reference). Samples: `npm run balance-samples`
+  (writes to `samples/balance-confirmation/`, gitignored). Verified end-to-end in the browser
+  (earlier format): the generated combined/zip/register/Annexure bytes were identical to the Node samples.
 - **Open:** partner has not confirmed wording/figures; awaiting the user's approval to deploy.
 
 ## Security / gating (don't regress)
@@ -126,7 +132,7 @@ Spec: `docs/tax-docs/TAX_DOCS_BALANCE_CONFIRMATION_SPEC.md`. References (fake da
 
 ## Commands
 ```
-npm test            # audit 51 + bank 23 + statement 29 + ocr 66 + balance 41 = 210
+npm test            # audit 51 + bank 23 + statement 29 + ocr 66 + balance 40 = 209
 npm run balance-samples  # Balance Confirmation samples (combined, zip, letter, register, annexure)
 npm run ocr-samples # OCR sample sets (auditor change on/off, shareholders-different)
 npm run samples / bank-samples / statement-samples

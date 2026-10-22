@@ -149,6 +149,7 @@
       letterhead: !!settings.letterhead,
       entity_name: settings.senderName || "",
       entity_address: settings.senderAddress || "",
+      entity_pan: panDigits(settings.senderPan || ""),
       letters: letters,
     };
   }

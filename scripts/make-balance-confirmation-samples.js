@@ -21,7 +21,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const settings = {
   fy: "2082/83", letterDate: "2083/07/05", asOn: "2083/03/32", responseDays: 15, letterhead: true, vatRate: 0.13,
-  senderName: "Himal Traders Private Limited", senderPan: "999999999", senderAddress: "Kathmandu-10, Kathmandu",
+  senderName: "Himal Traders Private Limited", senderPan: "222222222", senderAddress: "Kathmandu-10, Kathmandu",
   signatoryName: "Ram Bahadur Thapa", signatoryDesignation: "Chairman", hideEmpty: true,
 };
 
