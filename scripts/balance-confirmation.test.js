@@ -189,5 +189,18 @@ console.log("Balance Confirmation tests (section 9):\n");
   ok("9. Annexure 13: Sagarmatha values (net of returns, as entered)", ann[1][0] === "111111111" && ann[1][2] === 10152.2 && ann[1][4] === 56203.21 && ann[1][6] === 90000 && ann[1][8] === 25000 && ann[1][9] === 212.32);
 })();
 
-console.log("\n" + pass + " passed, " + fail + " failed.");
+// Every file in templates/ is served through protected-asset.php, which only serves whitelisted
+// extensions. A missing one gives a 404 (the Excel template download once failed this way).
+(function () {
+  var php = fs.readFileSync(path.join(__dirname, "..", "protected-asset.php"), "utf8");
+  var allowed = {};
+  php.replace(/'([a-z]+)'\s*=>\s*'[^']+',/g, function (m, ext) { allowed[ext] = true; return m; });
+  fs.readdirSync(path.join(__dirname, "..", "templates")).forEach(function (f) {
+    if (f.charAt(0) === ".") return;
+    var ext = f.split(".").pop().toLowerCase();
+    ok("protected-asset serves templates/" + f, allowed[ext] === true, "extension ." + ext + " is not in the whitelist");
+  });
+})();
+
+console.log("\n" + pass + " passed," + fail + " failed.");
 process.exit(fail ? 1 : 0);

@@ -2,7 +2,7 @@
 /**
  * Login-gated static asset server for the firm's templates and entity data.
  *
- * The files under data/ and templates/ (blank .docx templates + the entity
+ * The files under data/ and templates/ (blank .docx/.xlsx templates + the entity
  * vocabulary) are the firm's own material and must not be world-readable, but
  * the browser tools still need to fetch() them after sign-in. The data/ and
  * templates/ .htaccess route every direct request here; this script enforces
@@ -34,6 +34,7 @@ $types = [
     'yml'  => 'text/yaml; charset=utf-8',
     'json' => 'application/json; charset=utf-8',
     'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
 $dir  = (string)($_GET['dir'] ?? '');
