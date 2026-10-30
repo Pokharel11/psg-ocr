@@ -4,11 +4,12 @@
  * generator. Four documents: cover letter, minutes of the first shareholders' meeting,
  * minutes of the auditor appointment meeting (optional) and the Section 184 statement.
  *
- * It reuses, and does not duplicate, what the annual filing set already has: the docx
- * builders and the company-name possessive from ocr-core.js (OCRCore), the BS calendar
- * from common/psg-bsdate.js (PSGBSDate) and the Nepali wording file data/ocr.yaml
- * (key "initial"). Text is Unicode in Mangal, exactly like the annual set (there is no
- * Preeti conversion anywhere in OCR Docs, and none is added here).
+ * It matches the annual filing set in everything except the document wording: the docx
+ * builders (A4, 1 inch margins, Mangal, sizes, spacing, tables, signature layout) come from
+ * ocr-core.js (OCRCore), the BS calendar from common/psg-bsdate.js (PSGBSDate), and the shared
+ * labels, table headers and default meeting time from the annual keys of data/ocr.yaml. Only
+ * the four documents' wording is new (key "initial"). Text is Unicode in Mangal, like the
+ * annual set (there is no Preeti conversion anywhere in OCR Docs).
  *
  * Each document is first described as a list of neutral blocks; the SAME blocks give the
  * Word file and the on-screen preview text, so the preview cannot differ from the output.
@@ -52,30 +53,16 @@
   }
   function dateText(str) { var p = parseDate(str); return p.text || ""; }
   function todayBS(nowMs) { var b = PSGBSDate.adUTCtoBS(nowMs == null ? Date.now() : nowMs); return b.y + "/" + pad2(b.m0 + 1) + "/" + pad2(b.day); }
-  // First financial year = the Nepali fiscal year (Shrawan to Ashadh) holding the registration date.
-  // Shrawan is month 4: months 4-12 belong to year Y, months 1-3 to Y-1. Short form 2083/84, in Devanagari.
-  function financialYear(regDate) {
-    var p = parseDate(regDate);
-    if (!p.y) return "";
-    var start = p.mo >= 4 ? p.y : p.y - 1;
-    return toNep(start) + "/" + toNep(String(start + 1).slice(-2));
-  }
-
   // ── small text helpers ──
   function fmt(s, v) { return String(s == null ? "" : s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] != null ? v[k] : ""; }); }
   function tidy(s) { return String(s).replace(/\s{2,}/g, " ").trim(); }
   function digitsOnly(s) { return /^[0-9०-९]+$/.test(String(s || "").trim()); }
-  function timeText(t) {
-    if (!t || t.hour === "" || t.hour == null) return "";
-    var h = parseInt(toAscii(t.hour), 10), mi = t.minute === "" || t.minute == null ? 0 : parseInt(toAscii(t.minute), 10);
-    var clock = toNep(h) + (mi ? ":" + toNep(pad2(mi)) : "");
-    return tidy((t.part || "") + " " + clock + " बजे");
-  }
   function addressText(a, W) { return tidy(fmt(W.initial.address, { district: a.district, local: a.local, ward: toNep(toAscii(a.ward)) })); }
 
   // ── defaults ──
-  // Fills every defaulted field (spec section 2). Pure: returns a new object. `today` is a BS date
-  // string used for the letter date when none is given (the browser passes today's date).
+  // Fills every defaulted field (spec section 2). Pure: returns a new object. Meeting times are
+  // free text exactly as in the annual set, defaulting to its SGM time. `today` is a BS date string
+  // used for the letter date when none is given (the browser passes today's date).
   function normalise(input, W, today) {
     var D = W.initial.defaults, d = JSON.parse(JSON.stringify(input || {}));
     d.company = d.company || {}; d.address = d.address || {}; d.meeting1 = d.meeting1 || {}; d.meeting2 = d.meeting2 || {};
@@ -89,141 +76,137 @@
     d.fax = String(d.fax || "").trim() || D.fax;
     d.ocrOffice = String(d.ocrOffice || "").trim() || D.ocrOffice;
     var chair = d.founders[d.chairIndex];
-    var chairName = chair ? chair.name : "";
-    d.signer.name = String(d.signer.name || "").trim() || chairName;
+    d.signer.name = String(d.signer.name || "").trim() || (chair ? chair.name : "");
     d.signer.designation = String(d.signer.designation || "").trim() || D.signerDesignation;
     d.meeting1.date = d.meeting1.date || d.company.regDate || "";
     d.meeting1.no = String(d.meeting1.no || "").trim() || D.meeting1No;
+    d.meeting1.time = String(d.meeting1.time || "").trim() || W.defaults.times.sgm;
     d.auditor.include = d.auditor.include !== false;
     d.meeting2.date = d.meeting2.date || d.meeting1.date;
     d.meeting2.no = String(d.meeting2.no || "").trim() || D.meeting2No;
-    d.auditor.fy = String(d.auditor.fy || "").trim() || financialYear(d.company.regDate);
+    d.meeting2.time = String(d.meeting2.time || "").trim() || W.defaults.times.sgm;
+    d.auditor.title = String(d.auditor.title || "").trim();
+    d.auditor.fy = String(d.auditor.fy || "").trim();
     d.auditor.fee = String(d.auditor.fee || "").trim() || D.fee;
     d.letterDate = d.letterDate || today || todayBS();
+    d.docsSelected = d.docsSelected || {};
     return d;
   }
+  // Honorific prefix, as the annual set does: "<title> " when a title is given, else "".
+  function honor(aud) { var t = aud && aud.title ? String(aud.title).trim() : ""; return t ? t + " " : ""; }
 
-  // ── validation ──
+  // ── validation (messages in the annual set's style: "X required.", "Missing date: x.") ──
   function validate(input, W, today) {
     var d = normalise(input, W, today), errors = [], warnings = [];
     function req(v, msg) { if (!String(v == null ? "" : v).trim()) errors.push(msg); }
     function date(v, label) {
       var p = parseDate(v);
-      if (p.empty) { errors.push(label + " is required."); return null; }
-      if (p.error) { errors.push(label + ": " + p.error + "."); return null; }
+      if (p.empty) { errors.push("Missing date: " + label + "."); return null; }
+      if (p.error) { errors.push("Invalid date (" + label + "): " + p.error + "."); return null; }
       return p;
     }
-    req(d.company.name, "Company name is required.");
-    if (!String(d.company.regNo || "").trim()) errors.push("Registration number is required.");
+    req(d.company.name, "Company name required.");
+    if (!String(d.company.regNo || "").trim()) errors.push("Registration number required.");
     else if (!digitsOnly(d.company.regNo)) errors.push("Registration number must be digits only.");
-    var reg = date(d.company.regDate, "Registration date");
-    req(d.address.district, "District is required.");
-    req(d.address.local, "Local level (municipality) is required.");
-    if (!String(d.address.ward || "").trim()) errors.push("Ward number is required.");
+    var reg = date(d.company.regDate, "registration date");
+    req(d.address.district, "District required.");
+    req(d.address.local, "Local level required.");
+    if (!String(d.address.ward || "").trim()) errors.push("Ward number required.");
     else if (!digitsOnly(d.address.ward)) errors.push("Ward number must be digits only.");
-    if (!d.phones.length) errors.push("Enter at least one phone number.");
+    if (!d.phones.length) errors.push("Phone number required.");
     if (d.email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email) || /[^\x00-\x7F]/.test(d.email))) errors.push("Email must be a normal Latin-script address.");
-    if (!d.email) warnings.push("No email entered: the Section 184 statement will show an empty email line.");
     if (!d.founders.length) errors.push("Add at least one founder shareholder.");
-    var m1 = date(d.meeting1.date, "Meeting 1 date");
-    var letter = date(d.letterDate, "Letter date");
+    var m1 = date(d.meeting1.date, "meeting 1");
+    var letter = date(d.letterDate, "letter date");
     var m2 = null;
     if (d.auditor.include) {
-      m2 = date(d.meeting2.date, "Auditor meeting date");
-      req(d.auditor.name, "Auditor name is required when the auditor appointment is included.");
-      if (reg && !d.auditor.fy) errors.push("Financial year is required.");
+      m2 = date(d.meeting2.date, "auditor meeting");
+      req(d.auditor.fy, "Current fiscal year required.");
+      req(d.auditor.name, "Auditor name required.");
     }
     [["Meeting 1", m1], ["Auditor meeting", m2]].forEach(function (x) {
       if (!x[1]) return;
       if (reg && x[1].key < reg.key) warnings.push(x[0] + " date is earlier than the registration date.");
       if (letter && x[1].key > letter.key) warnings.push(x[0] + " date is later than the letter date.");
     });
-    [["Meeting 1", d.meeting1], ["Auditor meeting", d.auditor.include ? d.meeting2 : null]].forEach(function (x) {
-      var t = x[1] && x[1].time;
-      if (!t || t.hour === "" || t.hour == null) return;
-      var h = parseInt(toAscii(t.hour), 10);
-      if (isNaN(h) || h < 1 || h > 12) errors.push(x[0] + " start hour must be 1 to 12.");
-      if (t.minute !== "" && t.minute != null) { var mi = parseInt(toAscii(t.minute), 10); if (isNaN(mi) || mi < 0 || mi > 59) errors.push(x[0] + " start minute must be 0 to 59."); }
-    });
     if (d.founders.length > 1) warnings.push("Several founders: the plural wording is new and needs review before it is used on a live file.");
     return { errors: errors, warnings: warnings, data: d };
   }
 
   // ── block model ──
+  // Spacing is left to the annual builders' defaults (P: after 120, subHead: before 160 / after 80).
   function P(text, o) { return Object.assign({ k: "p", text: text }, o || {}); }
-  function numberedList(items, vars) { return items.map(function (t, i) { return P(toNep(i + 1) + ". " + fmt(t, vars), { align: "left", after: 60 }); }); }
-
+  function numberedList(items, vars) { return items.map(function (t, i) { return P(toNep(i + 1) + ". " + fmt(t, vars), { align: "left" }); }); }
+  // Same signature block as the annual set: space, dotted line, name, designation, company.
+  function signature(name, role, company) {
+    return [P(".....................................", { align: "left", before: 900, after: 0 }),
+      P(name, { align: "left", after: 0 }), P(role, { align: "left", after: 0 }), P(company, { align: "left" })];
+  }
   function attendeeRows(d, m2) {
     return d.founders.map(function (f, i) {
-      return [toNep(i + 1), f.name, m2 && i === d.chairIndex ? "अध्यक्ष" : f.role, ""];
+      return [toNep(i + 1) + ".", f.name, m2 && i === d.chairIndex ? "अध्यक्ष" : f.role, ""];
     });
   }
+  var ATT_WIDTHS = [900, 3400, 2200, 2800];
 
   function model(input, W, today) {
-    var d = normalise(input, W, today), I = W.initial, L = I.labels, c = d.company;
+    var d = normalise(input, W, today), I = W.initial, c = d.company;
     var address = addressText(d.address, W), companyKo = possessive(c.name);
     var chair = d.founders[d.chairIndex] || { name: "" };
     var plural = d.founders.length > 1;
     var docs = [];
 
-    // 1. Cover letter
+    // 1. Cover letter (laid out like the annual Section 50 application letter)
     var ocrLines = d.ocrOffice.split(/,\s*/);
     var line2 = ocrLines.shift() + (ocrLines.length ? "," : " ।");
     var cov = [
-      P(fmt(L.date, { date: dateText(d.letterDate) }), { align: "left", after: 280 }),
+      P(fmt(W.letters.dateLine, { date: dateText(d.letterDate) }), { align: "right", before: 120 }),
       P(I.cover.to1, { align: "left", after: 0 }),
-      P(line2, { align: "left", after: ocrLines.length ? 0 : 280 }),
+      P(line2, { align: "left", after: ocrLines.length ? 0 : 160 }),
     ];
-    if (ocrLines.length) cov.push(P(ocrLines.join(", ") + " ।", { align: "left", after: 280 }));
+    if (ocrLines.length) cov.push(P(ocrLines.join(", ") + " ।", { align: "left", after: 160 }));
     cov.push(
-      P(I.cover.subject, { align: "left", bold: true, after: 200 }),
-      P(I.cover.salute, { align: "left", after: 80 }),
-      P(fmt(I.cover.body, { address: address }), { after: 200 }),
-      P(I.cover.tapsil, { align: "left", after: 80 }));
+      { k: "sub", text: I.cover.subject },
+      P(W.labels.madhoday, { align: "left" }),
+      P(fmt(I.cover.body, { address: address })),
+      { k: "sub", text: W.labels.tapsil });
     var encl = [I.cover.enclosures.decision, I.cover.enclosures.address];
     if (d.auditor.include) encl.push(I.cover.enclosures.auditor);
-    encl.forEach(function (t, i) { cov.push(P(toNep(i + 1) + ") " + t, { align: "left", after: i === encl.length - 1 ? 280 : 0 })); });
-    cov.push(
-      P(I.cover.applicant, { align: "left", after: 800 }),
-      P(c.name, { align: "left", after: 120 }),
-      P(d.signer.name, { align: "left", after: 120 }),
-      P(d.signer.designation, { align: "left", after: 800 }),
-      P(I.cover.dots, { align: "left", after: 0 }));
+    encl.forEach(function (t, i) { cov.push(P(toNep(i + 1) + ") " + t, { align: "left", after: 60 })); });
+    cov.push(P(I.cover.applicant, { align: "left", before: 160 }));
+    signature(d.signer.name, d.signer.designation, c.name).forEach(function (b) { cov.push(b); });
     docs.push({ id: "cover", title: "Cover letter", blocks: cov });
 
     // 2. Minutes of the first shareholders' meeting
-    var t1 = timeText(d.meeting1.time);
-    var m1v = { date: dateText(d.meeting1.date), time: t1, company_ko: companyKo, address: address, founder: chair.name };
+    var m1v = { date: dateText(d.meeting1.date), time: d.meeting1.time, company_ko: companyKo, address: address, founder: chair.name };
     // NEEDS REVIEW (Gaurav): plural founder wording is new, not in the sample. Single founder = sample wording.
     var intro1 = plural ? I.m1.introPlural : I.m1.introSingle;
     var dv = { company: c.name, reg_date: dateText(c.regDate), reg_no: toNep(toAscii(c.regNo)), address: address };
     var b1 = [
-      P(fmt(I.meeting.no, { no: toNep(toAscii(d.meeting1.no)) }), { align: "left", underline: true, after: 280 }),
-      { k: "h", text: I.meeting.title, size: 28, after: 200, keepNext: true },
-      P(tidy(fmt(intro1, m1v)), { after: 200, review: plural }),
-      { k: "sub", text: L.attendance1 },
-      { k: "table", head: L.table, rows: attendeeRows(d, false), widths: [900, 3500, 2100, 2526] },
-      P("", { after: 360 }),
-      { k: "sub", text: L.proposals }].concat(numberedList(I.m1.proposals, {}));
+      P(fmt(I.meeting.no, { no: toNep(toAscii(d.meeting1.no)) }), { align: "left", underline: true }),
+      { k: "h", text: I.meeting.title, size: 24, keepNext: true },
+      P(tidy(fmt(intro1, m1v)), { review: plural }),
+      { k: "sub", text: W.labels.attendanceColon },
+      { k: "table", head: W.tables.attendance, rows: attendeeRows(d, false), widths: ATT_WIDTHS },
+      { k: "sub", text: W.labels.proposals }].concat(numberedList(I.m1.proposals, {}));
     I.m1.decisions.forEach(function (t, i) {
-      b1.push({ k: "sub", text: fmt(L.decision, { n: toNep(i + 1) }) }, P(tidy(fmt(t, dv)), { after: 200 }));
+      b1.push({ k: "sub", text: fmt(I.labels.decision, { n: toNep(i + 1) }) }, P(tidy(fmt(t, dv))));
     });
     docs.push({ id: "minutes1", title: "Minutes of the first shareholders' meeting", blocks: b1 });
 
     // 3. Minutes of the auditor appointment meeting
     if (d.auditor.include) {
-      var m2v = { date: dateText(d.meeting2.date), time: timeText(d.meeting2.time), company_ko: companyKo, chairman: chair.name, address: address };
-      var fy = d.auditor.fy;
+      var m2v = { date: dateText(d.meeting2.date), time: d.meeting2.time, company_ko: companyKo, chairman: chair.name, address: address };
+      var fy = toNep(toAscii(d.auditor.fy));
       var b2 = [
-        P(fmt(I.meeting.no, { no: toNep(toAscii(d.meeting2.no)) }), { align: "left", underline: true, after: 280 }),
-        { k: "h", text: I.meeting.title, size: 28, after: 200, keepNext: true },
-        P(tidy(fmt(I.m2.intro, m2v)), { after: 200 }),
-        { k: "sub", text: L.attendance2 },
-        { k: "table", head: L.table, rows: attendeeRows(d, true), widths: [900, 3500, 2100, 2526] },
-        P("", { after: 360 }),
-        { k: "sub", text: L.proposals }].concat(numberedList(I.m2.proposals, { fy: fy }));
+        P(fmt(I.meeting.no, { no: toNep(toAscii(d.meeting2.no)) }), { align: "left", underline: true }),
+        { k: "h", text: I.meeting.title, size: 24, keepNext: true },
+        P(tidy(fmt(I.m2.intro, m2v))),
+        { k: "sub", text: W.labels.attendanceColon },
+        { k: "table", head: W.tables.attendance, rows: attendeeRows(d, true), widths: ATT_WIDTHS },
+        { k: "sub", text: W.labels.proposals }].concat(numberedList(I.m2.proposals, { fy: fy }));
       I.m2.decisions.forEach(function (t, i) {
-        b2.push({ k: "sub", text: fmt(L.decision, { n: toNep(i + 1) }) }, P(tidy(fmt(t, { fy: fy, auditor: d.auditor.name, fee: d.auditor.fee })), { after: 200 }));
+        b2.push({ k: "sub", text: fmt(I.labels.decision, { n: toNep(i + 1) }) }, P(tidy(fmt(t, { fy: fy, auditor: honor(d.auditor) + d.auditor.name, fee: d.auditor.fee }))));
       });
       docs.push({ id: "minutes2", title: "Minutes of the auditor appointment meeting", blocks: b2 });
     }
@@ -231,16 +214,16 @@
     // 4. Section 184 statement
     var S = I.s184;
     docs.push({ id: "section184", title: "Section 184 statement", blocks: [
-      { k: "h", text: fmt(S.title1, { company_ko: companyKo }), size: 32, before: 360, after: 0 },
-      { k: "h", text: S.title2, bold: false, size: 28, before: 0, after: 0 },
-      { k: "h", text: S.title3, bold: false, size: 28, before: 0, after: 360 },
-      P(S.body, { after: 280 }),
-      { k: "h", text: S.tapsil, size: 24, before: 0, after: 200 },
-      P(S.sofar, { align: "left", after: 120 }),
+      { k: "h", text: fmt(S.title1, { company_ko: companyKo }), size: 24, after: 40 },
+      { k: "h", text: S.title2, size: 24, bold: false, before: 0, after: 40 },
+      { k: "h", text: S.title3, size: 24, bold: false, before: 0 },
+      P(S.body),
+      { k: "h", text: W.labels.tapsil, size: 24, before: 160 },
+      P(S.sofar, { align: "left" }),
       P(fmt(S.address, { address: address }), { align: "left", after: 0 }),
       P(fmt(S.phone, { phones: d.phones.map(toNep).join(", ") }), { align: "left", after: 0 }),
       P(fmt(S.fax, { fax: toNep(d.fax) }), { align: "left", after: 0 }),
-      P(S.email.replace("{email}", "").replace(/\s+$/, " "), { align: "left", after: 800, latin: d.email }),
+      P(S.email.replace("{email}", "").replace(/\s+$/, " "), { align: "left", after: 900, latin: d.email }),
       { k: "sig", left: [
           { label: S.certifier, bold: true, after: 120 },
           { label: S.name, value: d.signer.name },
@@ -250,10 +233,12 @@
         right: S.stamp },
     ] });
 
+    // the document choices of the annual set: any document can be switched off
+    docs = docs.filter(function (x) { return d.docsSelected[x.id] !== false; });
     return { data: d, docs: docs, plural: plural };
   }
 
-  // ── block -> plain text (preview and tests) ──
+  // ── block -> plain text (tests) ──
   function blockLines(b) {
     if (b.k === "table") return [b.head.join(" | ")].concat(b.rows.map(function (r) { return r.join(" | "); }));
     if (b.k === "sig") return b.left.map(function (x) { return x.value != null ? x.label + " : " + x.value : x.label; }).concat([b.right]);
@@ -261,30 +246,18 @@
     return [b.text];
   }
   function docLines(doc) { return doc.blocks.reduce(function (a, b) { return a.concat(blockLines(b)); }, []); }
-  // Preview: the same blocks, with the kind of each line so the page can style headings and flag review.
-  function preview(input, W, today) {
-    var m = model(input, W, today);
-    return {
-      plural: m.plural,
-      docs: m.docs.map(function (doc) {
-        return { id: doc.id, title: doc.title, blocks: doc.blocks.map(function (b) {
-          return { kind: b.k, bold: !!b.bold || b.k === "h" || b.k === "sub", review: !!b.review, lines: blockLines(b) };
-        }) };
-      }),
-    };
-  }
 
   // ── block -> Word ──
-  function run(text, o) { o = o || {}; return new TextRun({ text: text, bold: !!o.bold, size: o.size || 22, font: o.font || B.F, underline: o.underline ? {} : undefined }); }
+  function run(text, o) { o = o || {}; return new TextRun({ text: text, bold: !!o.bold, size: o.size || 22, font: o.font || B.F }); }
   function para(runs, o) {
     o = o || {};
-    return new Paragraph({ alignment: B.AL[o.align || "left"], keepNext: o.keepNext ? true : undefined, pageBreakBefore: o.pageBreakBefore ? true : undefined,
+    return new Paragraph({ alignment: B.AL[o.align || "left"], pageBreakBefore: o.pageBreakBefore ? true : undefined,
       spacing: { before: o.before || 0, after: o.after != null ? o.after : 120, line: 276 }, children: runs });
   }
   var NONE = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   var NOBORDERS = { top: NONE, bottom: NONE, left: NONE, right: NONE };
   function sigTable(b) {
-    var left = b.left.map(function (x, i) {
+    var left = b.left.map(function (x) {
       var runs = x.value != null ? [run(x.label, { bold: true }), run(" : " + x.value)] : [run(x.label, { bold: true })];
       return para(runs, { after: x.after != null ? x.after : 40 });
     });
@@ -300,7 +273,7 @@
       if (b.latin != null && b.latin !== "") {
         return para([run(b.text), run(b.latin, { font: "Arial" })], { align: b.align, after: b.after, pageBreakBefore: pb });
       }
-      return B.P(b.text, { align: b.align, bold: b.bold, underline: b.underline, before: b.before, after: b.after, keepNext: b.keepNext, pageBreakBefore: pb });
+      return B.P(b.text, { align: b.align, bold: b.bold, underline: b.underline, before: b.before, after: b.after, pageBreakBefore: pb });
     }
     if (b.k === "h") return B.heading(b.text, { size: b.size, bold: b.bold, before: b.before, after: b.after, keepNext: true, pageBreakBefore: pb });
     if (b.k === "sub") return B.subHead(b.text, { keepNext: true, pageBreakBefore: pb });
@@ -315,6 +288,7 @@
   function docChildren(doc, brk) {
     return doc.blocks.map(function (b, i) { return renderBlock(b, i === 0, brk); });
   }
+  // A4, default 1 inch margins: the same page as the annual set.
   function section(children) {
     return { properties: { page: { size: { width: PAGE.width, height: PAGE.height }, margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN } } }, children: children };
   }
@@ -332,8 +306,8 @@
   }
 
   return {
-    parseDate: parseDate, dateText: dateText, todayBS: todayBS, financialYear: financialYear, timeText: timeText,
-    addressText: addressText, normalise: normalise, validate: validate, model: model, docLines: docLines, preview: preview,
+    parseDate: parseDate, dateText: dateText, todayBS: todayBS, addressText: addressText, honor: honor,
+    normalise: normalise, validate: validate, model: model, docLines: docLines,
     buildCombined: buildCombined, buildSeparate: buildSeparate, Packer: OCRCore.Packer,
     PAGE: PAGE, BS_MIN: BS_MIN, BS_MAX: BS_MAX,
   };

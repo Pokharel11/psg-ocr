@@ -1,37 +1,43 @@
 /* P.S.G. & Associates — OCR Docs > Initial Update (portal tool module).
-   The form/UX layer. Documents are built by assets/js/ocr-initial-core.js (OCRInitial)
-   from the Nepali wording in data/ocr.yaml (key "initial"). Everything runs in the
-   browser; nothing is uploaded or stored. All ids prefixed "oiu-". */
+   The form/UX layer, built the same way as assets/js/app.js (OCR Automation): five steps,
+   the same fiscal-year dropdown, date and time inputs, validation messages, document choices,
+   output choice and download names. Documents are built by assets/js/ocr-initial-core.js
+   (OCRInitial) from the Nepali wording in data/ocr.yaml. Everything runs in the browser;
+   nothing is uploaded or stored. All ids prefixed "oiu-". */
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById("oiu-" + id); };
-  var W = null, started = false;
+  var W = null, started = false, step = 0;
 
+  // ── small helpers (same as app.js) ──
+  function nepDigits(s) { return String(s).replace(/[0-9]/g, function (d) { return "०१२३४५६७८९"[+d]; }); }
   function val(id) { var e = $(id); return e ? e.value.trim() : ""; }
-  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function opt(sel, v, t) { var o = document.createElement("option"); o.value = v; o.textContent = t == null ? v : t; sel.appendChild(o); }
-  function msg(errs, warns) {
-    $("msgs").innerHTML = (errs || []).map(function (x) { return '<div class="msg-err">' + esc(x) + "</div>"; })
-      .concat((warns || []).map(function (x) { return '<div class="msg-warn">' + esc(x) + "</div>"; })).join("");
+  function radio(name) { var e = document.querySelector('input[name="oiu-' + name + '"]:checked'); return e ? e.value : null; }
+  function msg(box, errs, warns) {
+    $(box).innerHTML = (errs || []).map(function (x) { return '<div class="msg-err">' + x + "</div>"; })
+      .concat((warns || []).map(function (x) { return '<div class="msg-warn">' + x + "</div>"; })).join("");
   }
+  function opt(sel, v, t) { var o = document.createElement("option"); o.value = v; o.textContent = t || v; sel.appendChild(o); }
 
   function load() {
     fetch("data/ocr.yaml").then(function (r) { return r.text(); }).then(function (txt) {
       W = jsyaml.load(txt);
       build();
-    }).catch(function () { $("globalMsgs").innerHTML = '<div class="msg-err">Could not load the wording file (data/ocr.yaml).</div>'; });
+    }).catch(function () { msg("globalMsgs", ["Could not load the OCR wording file (data/ocr.yaml)."]); });
   }
 
   // ── repeating rows ──
   function addPhone(v) {
     var d = document.createElement("div"); d.className = "mini-row"; d.setAttribute("data-phone", "");
-    d.innerHTML = '<input type="text" class="np" data-f="phone" placeholder="९८०००००००१" inputmode="tel"> <button type="button" class="remove-btn" data-remove title="Remove">&times;</button>';
+    d.innerHTML = '<input type="text" class="np dig" data-f="phone" placeholder="९८०००००००१"> <button type="button" class="remove-btn" data-oiu-remove>&times;</button>';
     if (v) d.querySelector("input").value = v;
     $("phones").appendChild(d);
   }
   function addFounder(v) {
     var d = document.createElement("div"); d.className = "director-block"; d.setAttribute("data-founder", "");
-    d.innerHTML = '<button type="button" class="remove-btn" data-remove title="Remove">&times;</button><div class="field-grid">' +
+    d.innerHTML = '<button type="button" class="remove-btn" data-oiu-remove>&times;</button>' +
+      '<div class="reorder"><button type="button" data-oiu-up title="Move up">▲</button><button type="button" data-oiu-down title="Move down">▼</button></div>' +
+      '<div class="field-grid">' +
       '<div class="field-group"><label>Full name (नेपाली)</label><input class="np" data-f="name" placeholder="राम बहादुर थापा"></div>' +
       '<div class="field-group"><label>Role</label><input class="np" data-f="role"></div></div>';
     d.querySelector('[data-f="role"]').value = (v && v.role) || W.initial.defaults.founderRole;
@@ -49,103 +55,165 @@
     if (cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
   }
 
+  // ── fiscal year dropdown (same options and default as OCR Automation) ──
+  function buildFY() {
+    var sel = $("fy"); sel.innerHTML = "";
+    for (var y = 2089; y >= 2060; y--) opt(sel, OCRCore.fyLabel(y), OCRCore.fyLabel(y));
+    sel.value = OCRCore.fyLabel(2082);
+  }
+
+  // Auditor firm selector (same as OCR Automation: PSG auto-fills the partner and title).
+  function setupFirmSelector() {
+    var fsel = $("curFirmSel"), psel = $("curPartner"), wrap = $("partnerWrap");
+    fsel.innerHTML = ""; opt(fsel, "psg", (W.firm && W.firm.name) || "पी.एस.जी. एण्ड एसोसिएट्स"); opt(fsel, "other", "Other firm");
+    psel.innerHTML = ""; (W.firm && W.firm.partners || []).forEach(function (p, i) { opt(psel, i, p.name); });
+    function applyPartner() { var p = (W.firm.partners || [])[+psel.value]; if (!p) return; $("curName").value = p.name; $("curTitle").value = p.title || "सी.ए."; }
+    function applyFirm() {
+      if (fsel.value === "psg") { wrap.hidden = false; applyPartner(); }
+      else { wrap.hidden = true; $("curName").value = ""; $("curTitle").value = ""; }
+    }
+    fsel.addEventListener("change", applyFirm);
+    psel.addEventListener("change", applyPartner);
+    applyFirm(); // default PSG
+  }
+
+  // ── document choices (same as OCR Automation) ──
+  var DOC_LABELS = { cover: "Cover letter to the Company Registrar (निवेदन)", minutes1: "Minutes of the first shareholders' meeting", minutes2: "Minutes of the auditor appointment meeting", section184: "Section 184 statement (दफा १८४)" };
+  function buildDocChoices() {
+    var box = $("docChoices"); box.innerHTML = "";
+    Object.keys(DOC_LABELS).forEach(function (id) {
+      if (id === "minutes2" && !$("auditInclude").checked) return;
+      var g = document.createElement("div"); g.className = "field-group";
+      g.innerHTML = '<label class="mini"><input type="checkbox" data-doc="' + id + '" checked> ' + DOC_LABELS[id] + "</label>";
+      box.appendChild(g);
+    });
+  }
+  function docsSelected() {
+    var sel = {};
+    Array.prototype.forEach.call($("docChoices").querySelectorAll("[data-doc]"), function (c) { sel[c.getAttribute("data-doc")] = c.checked; });
+    return sel;
+  }
+
+  // ── collect the form into the builder's data shape ──
   function collect() {
     var phones = Array.prototype.map.call($("phones").querySelectorAll('[data-f="phone"]'), function (i) { return i.value.trim(); }).filter(Boolean);
-    function time(p) { return { part: val(p + "Part"), hour: val(p + "Hour"), minute: val(p + "Min") }; }
     return {
       company: { name: val("companyName"), type: $("companyType").value, regNo: val("regNo"), regDate: val("regDate") },
       address: { district: val("district"), local: val("local"), ward: val("ward") },
       phones: phones, fax: val("fax"), email: val("email"), ocrOffice: val("ocrOffice"),
       founders: founders(), chairIndex: +($("chair").value || 0),
       signer: { name: val("signerName"), designation: val("signerDesignation") },
-      meeting1: { date: val("m1Date"), time: time("m1"), no: val("m1No") },
-      meeting2: { date: val("m2Date"), time: time("m2"), no: val("m2No") },
+      meeting1: { date: val("m1Date"), time: val("m1Time"), no: val("m1No") },
+      meeting2: { date: val("m2Date"), time: val("m2Time"), no: val("m2No") },
       letterDate: val("letterDate"),
-      auditor: { include: $("auditInclude").checked, name: val("auditorName"), fy: val("fy"), fee: val("fee") },
+      auditor: { include: $("auditInclude").checked, name: val("curName"), title: val("curTitle"), fy: $("fy").value, fee: val("fee") },
+      docsSelected: $("docChoices").children.length ? docsSelected() : {},
     };
   }
 
-  // ── preview: the same blocks as the Word file ──
-  function renderPreview(data) {
-    var pv = OCRInitial.preview(data, W), html = "";
-    if (pv.plural) html += '<div class="banner">Needs review: several founders. The plural wording (meeting 1 opening line, marked below) is new and not in the sample. Gaurav to approve before it is used on a live file.</div>';
-    pv.docs.forEach(function (doc) {
-      html += '<div class="section-card" style="font-family:\'Noto Sans Devanagari\',Mangal,sans-serif;"><div class="section-card-title">' + esc(doc.title) + "</div>";
-      doc.blocks.forEach(function (b) {
-        if (b.kind === "table") { html += '<table style="border-collapse:collapse;width:100%;margin:6px 0;">' + b.lines.map(function (l, i) { return "<tr>" + l.split(" | ").map(function (c) { return '<td style="border:1px solid #444;padding:4px 8px;' + (i === 0 ? "font-weight:700;" : "") + '">' + esc(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"; return; }
-        b.lines.forEach(function (l) {
-          html += '<p style="margin:4px 0;' + (b.bold ? "font-weight:700;" : "") + (b.review ? "background:#fff7e6;border-left:3px solid #b8860b;padding:2px 6px;" : "") + '">' + (esc(l) || "&nbsp;") + (b.review ? ' <span style="font-family:var(--body);font-size:.75rem;color:#8a6410;">[needs review: plural wording]</span>' : "") + "</p>";
-        });
-      });
-      html += "</div>";
-    });
-    $("preview").innerHTML = html;
+  // ── validation, step by step (messages as in OCR Automation) ──
+  function validateStep(s) {
+    var res = OCRInitial.validate(collect(), W, OCRInitial.todayBS()), errs = [];
+    var groups = [
+      /^(Company name|Registration number|Missing date: registration|Invalid date \(registration|District|Local level|Ward|Phone|Email)/,
+      /^Add at least one founder/,
+      /^(Missing date: (meeting|auditor|letter)|Invalid date \((meeting|auditor|letter))/,
+      /^(Current fiscal year|Auditor name)/,
+    ];
+    if (s <= 3) errs = res.errors.filter(function (e) { return groups[s].test(e); });
+    var dot = $("nav-" + s) && $("nav-" + s).querySelector(".warn-dot"); if (dot) dot.hidden = errs.length === 0;
+    return errs;
+  }
+  function goTo(s) {
+    document.querySelectorAll("[id^='oiu-step-']").forEach(function (p) { p.classList.remove("active"); });
+    [0, 1, 2, 3, 4].forEach(function (i) { $("nav-" + i).classList.remove("active"); });
+    $("step-" + s).classList.add("active"); $("nav-" + s).classList.add("active");
+    document.querySelectorAll("#oiu-m-steps .ms").forEach(function (m, i) { m.classList.toggle("active", i === s); });
+    if (s === 4) buildDocChoices();
+    step = s; window.scrollTo(0, 0);
   }
 
-  function check() {
-    var res = OCRInitial.validate(collect(), W, OCRInitial.todayBS());
-    msg(res.errors, res.warnings);
-    return res;
-  }
-
+  // ── save / load client file (same as OCR Automation) ──
   function download(bytes, name, mime) {
     var blob = bytes instanceof Blob ? bytes : new Blob([bytes], { type: mime || "application/octet-stream" });
     var a = document.createElement("a"), url = URL.createObjectURL(blob);
     a.href = url; a.download = name; document.body.appendChild(a); a.click();
     setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
   }
-  var FILES = { cover: "1_Cover_letter", minutes1: "2_Minutes_meeting_1", minutes2: "3_Minutes_auditor_meeting", section184: "4_Section_184_statement" };
-  function baseName() { return (val("companyName") || "Initial_Update").replace(/[^\wऀ-ॿ]+/g, "_"); }
+  function saveClient() { var d = collect(); delete d.docsSelected; download(JSON.stringify(d, null, 2), (val("companyName") || "client").replace(/[^\wऀ-ॿ]+/g, "_") + "_InitialUpdate.json", "application/json"); }
+  function fillForm(d) {
+    if (!d) return;
+    var c = d.company || {}, a = d.address || {}, m1 = d.meeting1 || {}, m2 = d.meeting2 || {}, au = d.auditor || {}, sg = d.signer || {};
+    $("companyName").value = c.name || ""; $("regNo").value = c.regNo || ""; $("regDate").value = c.regDate || "";
+    $("district").value = a.district || ""; $("local").value = a.local || ""; $("ward").value = a.ward || "";
+    $("phones").innerHTML = ""; (d.phones || []).forEach(addPhone); if (!$("phones").children.length) addPhone();
+    $("fax").value = d.fax || ""; $("email").value = d.email || ""; $("ocrOffice").value = d.ocrOffice || W.initial.defaults.ocrOffice;
+    $("founders").innerHTML = ""; (d.founders || []).forEach(addFounder); if (!$("founders").children.length) addFounder();
+    refreshChair(); $("chair").value = d.chairIndex || 0;
+    $("signerName").value = sg.name || ""; $("signerDesignation").value = sg.designation || W.initial.defaults.signerDesignation;
+    $("m1Date").value = m1.date || ""; $("m1Time").value = m1.time || W.defaults.times.sgm; $("m1No").value = m1.no || W.initial.defaults.meeting1No;
+    $("m2Date").value = m2.date || ""; $("m2Time").value = m2.time || W.defaults.times.sgm; $("m2No").value = m2.no || W.initial.defaults.meeting2No;
+    $("letterDate").value = d.letterDate || "";
+    $("auditInclude").checked = au.include !== false; toggleAudit();
+    if (au.fy) $("fy").value = au.fy;
+    $("curName").value = au.name || ""; $("curTitle").value = au.title || ""; $("fee").value = au.fee || W.initial.defaults.fee;
+    convertDigitsAll();
+  }
+  function loadClient(file) { var r = new FileReader(); r.onload = function () { try { fillForm(JSON.parse(r.result)); } catch (e) { msg("globalMsgs", ["Could not read that client file."]); } }; r.readAsText(file); }
 
-  function generate(kind) {
-    var res = check();
-    if (res.errors.length) return;
-    var data = collect();
+  function convertDigitsAll() { Array.prototype.forEach.call(document.querySelectorAll("[id^='oiu-step-'] .dig"), function (el) { if (el.classList.contains("np")) el.value = nepDigits(el.value); }); }
+  function toggleAudit() { $("auditorCard").hidden = !$("auditInclude").checked; }
+
+  // ── generate (same output choice and file names as OCR Automation) ──
+  function generate() {
+    var all = [];[0, 1, 2, 3].forEach(function (s) { all = all.concat(validateStep(s)); });
+    var res = OCRInitial.validate(collect(), W, OCRInitial.todayBS());
+    if (all.length) { msg("msgs", all); return; }
+    var data = collect(), today = OCRInitial.todayBS();
     try {
-      if (kind === "zip") {
-        var sep = OCRInitial.buildSeparate(data, W, OCRInitial.todayBS()), zip = new PizZip(), i = 0;
+      var out = radio("output");
+      if (out === "zip") {
+        var sep = OCRInitial.buildSeparate(data, W, today), zip = new PizZip();
+        var i = 0;
         (function next() {
-          if (i >= sep.length) { download(zip.generate({ type: "uint8array" }), baseName() + "_Initial_Update.zip", "application/zip"); return; }
-          OCRInitial.Packer.toBlob(sep[i].doc).then(function (blob) { return blob.arrayBuffer(); }).then(function (ab) { zip.file(FILES[sep[i].id] + ".docx", ab); i++; next(); });
+          if (i >= sep.length) { download(zip.generate({ type: "uint8array" }), (val("companyName") || "OCR") + "_documents.zip", "application/zip"); return; }
+          OCRInitial.Packer.toBlob(sep[i].doc).then(function (blob) { return blob.arrayBuffer(); }).then(function (ab) { zip.file((i + 1) + "_" + sep[i].id + ".docx", ab); i++; next(); });
         })();
       } else {
-        OCRInitial.Packer.toBlob(OCRInitial.buildCombined(data, W, OCRInitial.todayBS())).then(function (blob) { download(blob, baseName() + "_Initial_Update.docx"); });
+        OCRInitial.Packer.toBlob(OCRInitial.buildCombined(data, W, today)).then(function (blob) { download(blob, (val("companyName") || "OCR") + "_documents.docx"); });
       }
-      renderPreview(data);
-    } catch (e) { msg(["Could not build the documents: " + (e && e.message ? e.message : e)]); }
+      msg("msgs", [], res.warnings);
+    } catch (e) { msg("msgs", ["Could not build the documents: " + (e && e.message ? e.message : e)]); }
   }
 
-  function toggleAudit() { $("auditWrap").hidden = !$("auditInclude").checked; }
-
   function build() {
-    var D = W.initial.defaults;
     $("verifyBanner").hidden = W.meta && W.meta.verified === true;
-    ["m1Part", "m2Part"].forEach(function (id) { var s = $(id); opt(s, "", "(no part of day)"); W.initial.dayParts.forEach(function (p) { opt(s, p, p); }); });
-    $("ocrOffice").value = D.ocrOffice; $("fee").value = D.fee; $("m1No").value = D.meeting1No; $("m2No").value = D.meeting2No;
-    $("letterDate").value = OCRInitial.todayBS();
-    var as = $("auditorSel"); opt(as, "", "Other (type below)");
-    ((W.firm && W.firm.partners) || []).forEach(function (p) { opt(as, (p.title ? p.title + " " : "") + p.name, (p.title ? p.title + " " : "") + p.name); });
-    as.addEventListener("change", function () { if (as.value) $("auditorName").value = as.value; });
-    if (as.options.length > 1) { as.selectedIndex = 1; $("auditorName").value = as.value; }
-    addPhone(); addFounder();
+    buildFY();
+    $("ocrOffice").value = W.initial.defaults.ocrOffice; $("fee").value = W.initial.defaults.fee;
+    $("m1Time").value = W.defaults.times.sgm; $("m2Time").value = W.defaults.times.sgm;
+    $("letterDate").value = nepDigits(OCRInitial.todayBS());
+    addPhone(); addFounder(); refreshChair(); setupFirmSelector();
 
-    // financial year follows the registration date until the user edits it
-    var fyAuto = true;
-    $("fy").addEventListener("input", function () { fyAuto = false; });
-    $("regDate").addEventListener("input", function () { if (fyAuto) $("fy").value = OCRInitial.financialYear($("regDate").value); });
-
+    // events
     document.addEventListener("click", function (e) {
-      var rm = e.target.closest("#oiu-form [data-remove]");
-      if (rm) { var b = rm.closest("[data-phone],[data-founder]"); if (b) { b.remove(); refreshChair(); } }
+      var g = e.target.closest("[data-oiu-goto]"); if (g) {
+        var to = +g.getAttribute("data-oiu-goto");
+        if (to > step && step <= 3) validateStep(step); // refresh the warning dot; allow navigation regardless
+        goTo(to); return;
+      }
+      var rm = e.target.closest("[data-oiu-remove]"); if (rm) { var b = rm.closest("[data-phone],[data-founder]"); if (b) { b.remove(); refreshChair(); } return; }
+      var up = e.target.closest("[data-oiu-up]"); if (up) { var blk = up.closest("[data-founder]"); if (blk && blk.previousElementSibling) blk.parentNode.insertBefore(blk, blk.previousElementSibling); refreshChair(); return; }
+      var dn = e.target.closest("[data-oiu-down]"); if (dn) { var bl = dn.closest("[data-founder]"); if (bl && bl.nextElementSibling) bl.parentNode.insertBefore(bl.nextElementSibling, bl); refreshChair(); return; }
     });
-    $("form").addEventListener("input", function (e) { if (e.target.matches('[data-f="name"]')) refreshChair(); });
-    $("form").addEventListener("change", function (e) { if (e.target.matches('[data-f="name"]')) refreshChair(); });
+    $("founders").addEventListener("input", refreshChair);
     $("addPhone").addEventListener("click", function () { addPhone(); });
     $("addFounder").addEventListener("click", function () { addFounder(); });
     $("auditInclude").addEventListener("change", toggleAudit);
-    $("genCombined").addEventListener("click", function () { generate("combined"); });
-    $("genZip").addEventListener("click", function () { generate("zip"); });
-    $("showPreview").addEventListener("click", function () { var r = check(); if (!r.errors.length) renderPreview(collect()); });
+    $("save").addEventListener("click", saveClient);
+    $("load").addEventListener("change", function (e) { if (e.target.files[0]) loadClient(e.target.files[0]); });
+    $("generate").addEventListener("click", generate);
+    // English digits -> Nepali on blur for .dig.np fields
+    document.addEventListener("blur", function (e) { if (e.target.matches && e.target.matches("[id^='oiu-'].dig.np")) e.target.value = nepDigits(e.target.value); }, true);
     toggleAudit();
   }
 
