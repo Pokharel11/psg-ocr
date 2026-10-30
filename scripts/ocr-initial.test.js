@@ -164,7 +164,16 @@ function paraXml(xml, text) { const p = xml.split("</w:p>").map(function (p) { r
 
   // ── 3. financial year: the annual selector, not derived ──
   const fyBody = function (src) { const m = src.match(/for \(var y = 2089; y >= 2060; y--\) opt\(sel, OCRCore\.fyLabel\(y\), OCRCore\.fyLabel\(y\)\);\s*sel\.value = OCRCore\.fyLabel\(2082\);/); return m ? m[0].replace(/\s+/g, " ") : null; };
-  ok("3. same options (2060/61 to 2089/90, annual labels) and same default as the annual form", fyBody(srcUi) && fyBody(srcUi) === fyBody(srcApp), String(fyBody(srcUi)));
+  const optLoop = function (src) { const m = src.match(/for \(var y = 2089; y >= 2060; y--\) opt\(sel, OCRCore\.fyLabel\(y\), OCRCore\.fyLabel\(y\)\);/); return m ? m[0] : null; };
+  ok("3. same options as the annual form (2060/61 to 2089/90, annual labels)", optLoop(srcUi) && optLoop(srcUi) === optLoop(srcApp));
+  ok("3. annual default is untouched (still 2082/083)", /sel\.value = OCRCore\.fyLabel\(2082\);/.test(srcApp));
+  ok("3. Initial Update default comes from today's BS date", /OCRInitial\.currentFYStart\(\)/.test(srcUi));
+  const BSD = require("../assets/js/common/psg-bsdate");
+  const at = function (y, m0, d) { return BSD.bsToAdUTC(y, m0, d) + 6 * 3600000; };
+  ok("3. fiscal year: last day of Ashadh 2082 is still 2081/082", IU.currentFYStart(at(2082, 2, BSD.bsMonthDays(2082, 2))) === 2081);
+  ok("3. fiscal year: Shrawan 1, 2082 starts 2082/083", IU.currentFYStart(at(2082, 3, 1)) === 2082);
+  ok("3. fiscal year: Baisakh 1, 2083 is still 2082/083", IU.currentFYStart(at(2083, 0, 1)) === 2082);
+  ok("3. fiscal year: Ashadh end 2083 is 2082/083 and Shrawan 1, 2083 is 2083/084", IU.currentFYStart(at(2083, 2, BSD.bsMonthDays(2083, 2))) === 2082 && IU.currentFYStart(at(2083, 3, 1)) === 2083);
   ok("3. the annual label format is printed (२०८३/०८४), exactly as selected", /आर्थिक वर्ष २०८३\/०८४ को आय/.test(got1[2][7]) && OCR.fyLabel(2083) === "२०८३/०८४");
   ok("3. the year is NOT derived from the registration date", /आर्थिक वर्ष २०८३\/०८४ को आय/.test(linesOf(fixture({ company: { name: COMPANY, regNo: "1", regDate: "2085/01/05" } }))[2][7]) && !/financialYear|fyOf/.test(srcCore));
   ok("3. the fiscal year is required when the auditor appointment is included", IU.validate(fixture({ auditor: { include: true, name: "x", fy: "" } }), W).errors.some(function (e) { return /Current fiscal year required/.test(e); }));
@@ -289,7 +298,7 @@ function paraXml(xml, text) { const p = xml.split("</w:p>").map(function (p) { r
   ok("13. the company-name example is the annual one (हिमाल ट्रेडर्स प्रा.लि.), in the form", /id="oiu-companyName" placeholder="हिमाल ट्रेडर्स प्रा\.लि\."/.test(pIu) && /id="ocr-companyName" placeholder="हिमाल ट्रेडर्स प्रा\.लि\."/.test(pOcr));
   ok("13. no preview, as the annual tool has none", !/preview/i.test(pIu + srcUi) && !/preview/i.test(pOcr));
   ok("13. step buttons use their own attribute so they never trigger the annual tool's handler", !/data-goto=/.test(pIu) && /data-oiu-goto/.test(pIu));
-  ok("13. download names follow the annual pattern: {company}_documents.docx / .zip, entries N_id.docx", /"_documents\.docx"/.test(srcUi) && /"_documents\.zip"/.test(srcUi) && /\(i \+ 1\) \+ "_" \+ sep\[i\]\.id \+ "\.docx"/.test(srcUi) && /"_documents\.docx"/.test(srcApp));
+  ok("13. download names use the Initial Update names: {company}_initial_update.docx / .zip, entries N_id.docx", /"_initial_update\.docx"/.test(srcUi) && /"_initial_update\.zip"/.test(srcUi) && !/_documents/.test(srcUi) && /\(i \+ 1\) \+ "_" \+ sep\[i\]\.id \+ "\.docx"/.test(srcUi) && /"_documents\.docx"/.test(srcApp));
   const port = read("assets/js/portal.js");
   ok("13. registered in the portal like the other tools; shared scripts load once", /"ocr-initial": \[/.test(port) && /scriptLoads\[key\]/.test(port));
 

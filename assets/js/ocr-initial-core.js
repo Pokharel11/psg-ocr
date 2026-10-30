@@ -53,6 +53,8 @@
   }
   function dateText(str) { var p = parseDate(str); return p.text || ""; }
   function todayBS(nowMs) { var b = PSGBSDate.adUTCtoBS(nowMs == null ? Date.now() : nowMs); return b.y + "/" + pad2(b.m0 + 1) + "/" + pad2(b.day); }
+  // Nepali fiscal year starts on Shrawan 1 (month index 3): before it we are still in the previous year.
+  function currentFYStart(nowMs) { var b = PSGBSDate.adUTCtoBS(nowMs == null ? Date.now() : nowMs); return b.m0 >= 3 ? b.y : b.y - 1; }
   // ── small text helpers ──
   function fmt(s, v) { return String(s == null ? "" : s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] != null ? v[k] : ""; }); }
   function tidy(s) { return String(s).replace(/\s{2,}/g, " ").trim(); }
@@ -306,7 +308,7 @@
   }
 
   return {
-    parseDate: parseDate, dateText: dateText, todayBS: todayBS, addressText: addressText, honor: honor,
+    parseDate: parseDate, dateText: dateText, todayBS: todayBS, currentFYStart: currentFYStart, addressText: addressText, honor: honor,
     normalise: normalise, validate: validate, model: model, docLines: docLines,
     buildCombined: buildCombined, buildSeparate: buildSeparate, Packer: OCRCore.Packer,
     PAGE: PAGE, BS_MIN: BS_MIN, BS_MAX: BS_MAX,

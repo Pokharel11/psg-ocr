@@ -59,7 +59,7 @@
   function buildFY() {
     var sel = $("fy"); sel.innerHTML = "";
     for (var y = 2089; y >= 2060; y--) opt(sel, OCRCore.fyLabel(y), OCRCore.fyLabel(y));
-    sel.value = OCRCore.fyLabel(2082);
+    sel.value = OCRCore.fyLabel(Math.min(2089, Math.max(2060, OCRInitial.currentFYStart())));
   }
 
   // Auditor firm selector (same as OCR Automation: PSG auto-fills the partner and title).
@@ -176,11 +176,11 @@
         var sep = OCRInitial.buildSeparate(data, W, today), zip = new PizZip();
         var i = 0;
         (function next() {
-          if (i >= sep.length) { download(zip.generate({ type: "uint8array" }), (val("companyName") || "OCR") + "_documents.zip", "application/zip"); return; }
+          if (i >= sep.length) { download(zip.generate({ type: "uint8array" }), (val("companyName") || "OCR") + "_initial_update.zip", "application/zip"); return; }
           OCRInitial.Packer.toBlob(sep[i].doc).then(function (blob) { return blob.arrayBuffer(); }).then(function (ab) { zip.file((i + 1) + "_" + sep[i].id + ".docx", ab); i++; next(); });
         })();
       } else {
-        OCRInitial.Packer.toBlob(OCRInitial.buildCombined(data, W, today)).then(function (blob) { download(blob, (val("companyName") || "OCR") + "_documents.docx"); });
+        OCRInitial.Packer.toBlob(OCRInitial.buildCombined(data, W, today)).then(function (blob) { download(blob, (val("companyName") || "OCR") + "_initial_update.docx"); });
       }
       msg("msgs", [], res.warnings);
     } catch (e) { msg("msgs", ["Could not build the documents: " + (e && e.message ? e.message : e)]); }
