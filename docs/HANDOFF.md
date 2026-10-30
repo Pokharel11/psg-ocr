@@ -161,3 +161,9 @@ Roll back: `git reset --hard <tag> && git push --force origin main`.
 - **Tax Docs / Balance Confirmation** is LIVE (deployed 2026-10-22, `main` HEAD `e429231`, rollback
   tag `pre-tax-docs`). Only open item: a partner confirming the letter wording/figures.
 - OCR Stage 2: still blocked on the reformatted full `OCR_2` file from the user.
+
+## OCR Docs > Initial Update (deployed 2026-10-30, rollback tag `pre-initial-update`)
+- Second item in OCR Docs (first filing after registration): cover letter, minutes of the first shareholders' meeting, auditor appointment minutes (optional), Section 184 statement. Spec: OCR_INITIAL_UPDATE_SPEC.md (Desktop copy, not in repo).
+- Code: `assets/js/ocr-initial-core.js` (blocks -> Word and preview text from the same model), `ocr-initial.js` + `partials/tool-ocr-initial.html` (ids `oiu-`), wording in `data/ocr.yaml` under `initial:`. Tests `scripts/ocr-initial.test.js` (82); samples `npm run initial-update-samples`.
+- Decisions: Unicode Mangal (no Preeti converter exists in OCR Docs), A4 with 1 inch margins, `OCRCore.possessive()` joins company and "को" with NO space (new documents only; the annual set still writes "{company} को" with a space in ocr.yaml lines 77, 89, 158, 159, 179, 183), spellings उपस्थिति, तपसिल, कारबाही.
+- Open: plural founder wording needs Gaurav's review (marked NEEDS REVIEW); meeting numbers 01/02 vs 01/03; auditor default on; a real set still to be compared against the original PDF.
