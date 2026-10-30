@@ -25,7 +25,7 @@ function eqLines(name, got, want) {
 
 // ── fictional fixtures ──
 const COMPANY = "सन्स्कृत उदाहरण प्रा. लि.";
-const KO = COMPANY + " को";            // the one possessive form (OCRCore.possessive)
+const KO = COMPANY + "को";             // the one possessive form (OCRCore.possessive): no space
 function fixture(over) {
   return Object.assign({
     company: { name: COMPANY, type: "private", regNo: "98765", regDate: "2083/05/05" },
@@ -77,7 +77,7 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
       "शेयरधनीको बैठक नं. ०१",
       "शेयरधनीको बैठक",
       "आज मिति २०८३/०५/०५ गते बिहान ११ बजे " + KO + " शेयरधनीको बैठक, संस्थापक, श्री काल्पनिक नाम एकज्यूको उपस्थितिमा, " + ADDR + " मा अवस्थित कम्पनीको रजिष्टर्ड कार्यालयमा बसी निम्न लिखित निर्णयहरु गरियो ।",
-      "उपस्थिती :",
+      "उपस्थिति :",
       "क्रम सं | नाम | पद | हस्ताक्षर",
       "१ | काल्पनिक नाम एक | संस्थापक शेयरधनी | ",
       "",
@@ -88,7 +88,7 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
       "निर्णय नं. १",
       "हाम्रो " + COMPANY + " नामको कम्पनी स्थापना गरी सञ्चालन गर्ने इच्छा भै आवश्यक कागजात प्रबन्धपत्र नियमावली लगायतका कागजहरु तयार गरी सम्बन्धित कार्यालयमा चलाइएको कारबाही अनुसार यहि मिति २०८३/०५/०५ गते कम्पनी दर्ता नं. ९८७६५ मा कम्पनी रीत पूर्वक दर्ता भएको कुरा खुशीसाथ बैठकमा जानकारी गराइयो । यसको साथै कम्पनी दर्ता प्रयोजन तथा स्थापना सम्बन्धमा भएको खर्चलाई कम्पनीले अनुमोदन गरी ब्यहोर्ने निर्णय गरियो ।",
       "निर्णय नं. २",
-      "कम्पनी दर्ता भइसकेकोले कम्पनीको काम सञ्चालन तथा जनसम्पर्क गर्न सुरुमा नै कार्यालयको आवश्यकता पर्ने भएको हुँदा सोको लागि " + ADDR + " मा कम्पनीको कार्यालय राखी आवश्यक काम कारवाहीहरु तथा आवश्यक पुर्वाधारहरु तयार गर्दै जाने निर्णय गरियो ।",
+      "कम्पनी दर्ता भइसकेकोले कम्पनीको काम सञ्चालन तथा जनसम्पर्क गर्न सुरुमा नै कार्यालयको आवश्यकता पर्ने भएको हुँदा सोको लागि " + ADDR + " मा कम्पनीको कार्यालय राखी आवश्यक काम कारबाहीहरु तथा आवश्यक पुर्वाधारहरु तयार गर्दै जाने निर्णय गरियो ।",
       "निर्णय नं. ३",
       "बैठकमा छलफलको लागि अन्य विषय बस्तु केहि नहुँदा आजको बैठक यहि समाप्त गरियो ।",
     ],
@@ -112,8 +112,8 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
       KO,
       "कम्पनी ऐन २०६३ को",
       "दफा १८४ बमोजिमको विवरण",
-      "तहाँ कार्यालयमा कम्पनी दर्ता पश्चात कम्पनी ऐन २०६३ को दफा १८४ को उपदफा (२) र (४) बमोजिमको जानकारी कम्पनीले कार्यालयलाई गराउनु पर्ने व्यवस्था भएकोले तपसील बमोजिमको जानकारी गराउँदछु ।",
-      "तपसील",
+      "तहाँ कार्यालयमा कम्पनी दर्ता पश्चात कम्पनी ऐन २०६३ को दफा १८४ को उपदफा (२) र (४) बमोजिमको जानकारी कम्पनीले कार्यालयलाई गराउनु पर्ने व्यवस्था भएकोले तपसिल बमोजिमको जानकारी गराउँदछु ।",
+      "तपसिल",
       "कम्पनीको हाल सम्मको जानकारी",
       "कम्पनीको ठेगाना : " + ADDR,
       "टेलिफोन नं : ९८००००००००, ०१-५५५००००",
@@ -213,9 +213,9 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
   ok("7. meeting 1, the auditor meeting and the statement each start on a new page", pbb("शेयरधनीको बैठक नं. ०१") && pbb("शेयरधनीको बैठक नं. ०२") && pbb("दफा १८४ बमोजिमको विवरण", true));
   ok("7. the cover letter does not start with a page break (no blank first page)", !/<w:pageBreakBefore/.test(bodyParas[firstOf("मिति : २०८३/०५/१२")]));
   ok("7. no stray page-break paragraphs (a long document cannot get a blank page)", !/<w:br w:type="page"/.test(x7));
-  const keepHeads = ["उपस्थिती :", "उपस्थिति :", "प्रस्तावहरु :", "निर्णय नं. १", "निर्णय नं. २", "निर्णय नं. ३"];
+  const keepHeads = ["उपस्थिति :", "उपस्थिति :", "प्रस्तावहरु :", "निर्णय नं. १", "निर्णय नं. २", "निर्णय नं. ३"];
   ok("7. every heading is kept with the text after it (keepNext)", keepHeads.every(function (h) { return bodyParas.filter(function (p) { return paras(p + "</w:p>")[0] === h; }).every(function (p) { return /<w:keepNext/.test(p); }); }));
-  ok("7. US Letter page, 1 inch margins", /<w:pgSz w:w="12240" w:h="15840"/.test(x7) && /<w:pgMar[^>]*w:top="1440"[^>]*w:right="1440"[^>]*w:bottom="1440"[^>]*w:left="1440"/.test(x7), (x7.match(/<w:pgSz[^>]*>|<w:pgMar[^>]*>/g) || []).join(" "));
+  ok("7. A4 page, 1 inch margins", /<w:pgSz w:w="11906" w:h="16838"/.test(x7) && /<w:pgMar[^>]*w:top="1440"[^>]*w:right="1440"[^>]*w:bottom="1440"[^>]*w:left="1440"/.test(x7), (x7.match(/<w:pgSz[^>]*>|<w:pgMar[^>]*>/g) || []).join(" "));
   const sep = IU.buildSeparate(three, W);
   ok("7. each document is also available separately, none starting with a page break", sep.length === 4 && (await Promise.all(sep.map(function (s) { return docxXml(s.doc); }))).every(function (x) { return !/<w:pageBreakBefore/.test(x); }));
 
@@ -230,7 +230,7 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
   // ── 9. possessive: one rule ──
   const all = docTexts(three).join("\n");
   ok("9. the possessive uses the shared helper's form everywhere", OCR.possessive(COMPANY) === KO && all.split(KO).length - 1 === 3, String(all.split(KO).length - 1));
-  ok("9. none of the sample's inconsistent spacings appear", !/प्रा\. लि\.को|प्रा\.लि\. को/.test(all));
+  ok("9. one spacing only: never a space before को after the company name", !/प्रा\. लि\. को|प्रा\.लि\. को/.test(all));
   ok("9. the spacing is not hard coded in the new module", !/"\s*को"|\+ *" को/.test(srcCore.replace(/\/\/.*$/gm, "")));
 
   // ── 10. addresses and signatures ──
@@ -256,6 +256,8 @@ function docTexts(d) { return IU.model(d, W).docs.map(function (x) { return IU.d
   const sample = ["सचालन", "रर्जिष्टर्ड", "ईच्छा", "लगाएतका", "हुदाँ", "बिषय", "बिवरण"];
   ok("12. none of the sample's typing errors appears", !sample.some(function (w) { return all.indexOf(w) >= 0 || srcYaml.slice(srcYaml.indexOf("\ninitial:")).indexOf(w) >= 0; }));
   ok("12. the corrected spellings are present", ["सञ्चालन", "रजिष्टर्ड", "इच्छा", "लगायतका", "हुँदा", "विषय", "विवरण"].every(function (w) { return all.indexOf(w) >= 0; }));
+
+  ok("12. standardised: उपस्थिति, तपसिल, कारबाही (never उपस्थिती, तपसील, कारवाही) in all four documents", !/उपस्थिती|तपसील|कारवाही/.test(all + docTexts(one).join("")) && /उपस्थिति :/.test(all) && /तपसिल/.test(all) && /कारबाही/.test(all));
 
   // ── 13. nothing from a real client in the repository ──
   const scanned = ["data/ocr.yaml", "assets/js/ocr-initial-core.js", "assets/js/ocr-initial.js", "partials/tool-ocr-initial.html", "scripts/ocr-initial.test.js", "scripts/make-ocr-initial-samples.js"];

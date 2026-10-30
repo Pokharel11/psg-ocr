@@ -30,8 +30,8 @@
     TableLayoutType = docx.TableLayoutType, AlignmentType = docx.AlignmentType;
   var B = OCRCore.builders, toNep = OCRCore.toNep, possessive = OCRCore.possessive;
 
-  // The sample is a US Letter page with 1 inch margins (spec section 5). Text width = 9360.
-  var LETTER = { width: 12240, height: 15840 }, MARGIN = 1440, TEXT_W = 9360;
+  // A4 with 1 inch margins (owner decision; the sample was Letter). Text width = 11906 - 2880 = 9026.
+  var PAGE = { width: 11906, height: 16838 }, MARGIN = 1440, TEXT_W = 9026;
   var BS_MIN = 2000, BS_MAX = 2090; // range of the shared BS calendar (see HANDOFF.md)
 
   // ── dates (shared BS calendar) ──
@@ -202,7 +202,7 @@
       { k: "h", text: I.meeting.title, size: 28, after: 200, keepNext: true },
       P(tidy(fmt(intro1, m1v)), { after: 200, review: plural }),
       { k: "sub", text: L.attendance1 },
-      { k: "table", head: L.table, rows: attendeeRows(d, false), widths: [900, 3700, 2200, 2560] },
+      { k: "table", head: L.table, rows: attendeeRows(d, false), widths: [900, 3500, 2100, 2526] },
       P("", { after: 360 }),
       { k: "sub", text: L.proposals }].concat(numberedList(I.m1.proposals, {}));
     I.m1.decisions.forEach(function (t, i) {
@@ -219,7 +219,7 @@
         { k: "h", text: I.meeting.title, size: 28, after: 200, keepNext: true },
         P(tidy(fmt(I.m2.intro, m2v)), { after: 200 }),
         { k: "sub", text: L.attendance2 },
-        { k: "table", head: L.table, rows: attendeeRows(d, true), widths: [900, 3700, 2200, 2560] },
+        { k: "table", head: L.table, rows: attendeeRows(d, true), widths: [900, 3500, 2100, 2526] },
         P("", { after: 360 }),
         { k: "sub", text: L.proposals }].concat(numberedList(I.m2.proposals, { fy: fy }));
       I.m2.decisions.forEach(function (t, i) {
@@ -290,8 +290,8 @@
     });
     function cell(children, w) { return new TableCell({ borders: NOBORDERS, width: { size: w, type: WidthType.DXA }, children: children }); }
     return new Table({
-      width: { size: TEXT_W, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: [6000, 3360],
-      rows: [new TableRow({ children: [cell(left, 6000), cell([para([run(b.right)], { align: "center" })], 3360)] })],
+      width: { size: TEXT_W, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: [5800, 3226],
+      rows: [new TableRow({ children: [cell(left, 5800), cell([para([run(b.right)], { align: "center" })], 3226)] })],
     });
   }
   function renderBlock(b, first, brk) {
@@ -316,7 +316,7 @@
     return doc.blocks.map(function (b, i) { return renderBlock(b, i === 0, brk); });
   }
   function section(children) {
-    return { properties: { page: { size: { width: LETTER.width, height: LETTER.height }, margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN } } }, children: children };
+    return { properties: { page: { size: { width: PAGE.width, height: PAGE.height }, margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN } } }, children: children };
   }
   // One Word file: every document after the first starts on a new page (pageBreakBefore on its
   // first paragraph, so there is never a blank page and no stray break paragraph).
@@ -335,6 +335,6 @@
     parseDate: parseDate, dateText: dateText, todayBS: todayBS, financialYear: financialYear, timeText: timeText,
     addressText: addressText, normalise: normalise, validate: validate, model: model, docLines: docLines, preview: preview,
     buildCombined: buildCombined, buildSeparate: buildSeparate, Packer: OCRCore.Packer,
-    LETTER: LETTER, BS_MIN: BS_MIN, BS_MAX: BS_MAX,
+    PAGE: PAGE, BS_MIN: BS_MIN, BS_MAX: BS_MAX,
   };
 });
