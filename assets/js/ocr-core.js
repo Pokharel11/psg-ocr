@@ -66,6 +66,12 @@
     return toNep(last3);
   }
 
+  // Possessive of a company name: the one place the "को" is joined to a name, so every
+  // document that uses it spaces it the same way. (Initial Update uses it; the older
+  // annual set keeps its own wording in data/ocr.yaml.)
+  var POSSESSIVE_SEP = "";
+  function possessive(name) { return String(name == null ? "" : name).trim() + POSSESSIVE_SEP + "को"; }
+
   // ── date helpers on the shared BS calendar (A4) ──
   function parseNepDate(str) {
     var ascii = String(str || "").replace(/[०-९]/g, function (c) { return nepNums.indexOf(c); });
@@ -88,6 +94,7 @@
     o = o || {};
     return new Paragraph({
       alignment: AL[o.align || "justify"],
+      keepNext: o.keepNext ? true : undefined, pageBreakBefore: o.pageBreakBefore ? true : undefined,
       spacing: { before: o.before != null ? o.before : 0, after: o.after != null ? o.after : 120, line: 276 },
       border: o.line ? { bottom: { style: BorderStyle.SINGLE, size: 6, color: "000000", space: 1 } } : undefined,
       children: [new TextRun({ text: text || "", bold: !!o.bold, size: o.size || 22, font: F, underline: o.underline ? {} : undefined })],
@@ -95,11 +102,12 @@
   }
   function heading(text, o) {
     o = o || {};
-    return new Paragraph({ alignment: AL.center, spacing: { before: o.before != null ? o.before : 120, after: o.after != null ? o.after : 120, line: 276 },
-      children: [new TextRun({ text: text, bold: true, size: o.size || 28, font: F })] });
+    return new Paragraph({ alignment: AL.center, keepNext: o.keepNext ? true : undefined, pageBreakBefore: o.pageBreakBefore ? true : undefined, spacing: { before: o.before != null ? o.before : 120, after: o.after != null ? o.after : 120, line: 276 },
+      children: [new TextRun({ text: text, bold: o.bold !== false, size: o.size || 28, font: F })] });
   }
-  function subHead(text) {
-    return new Paragraph({ alignment: AL.left, spacing: { before: 160, after: 80, line: 276 },
+  function subHead(text, o) {
+    o = o || {};
+    return new Paragraph({ alignment: AL.left, keepNext: o.keepNext ? true : undefined, pageBreakBefore: o.pageBreakBefore ? true : undefined, spacing: { before: 160, after: 80, line: 276 },
       children: [new TextRun({ text: text, bold: true, size: 22, font: F, underline: {} })] });
   }
   function PB() { return new Paragraph({ children: [new PageBreak()] }); }
@@ -444,6 +452,8 @@
     buildCombined: buildCombined, buildSeparate: buildSeparate, documentList: documentList,
     amountWordsNep: amountWordsNep, groupNep: groupNep, toNep: toNep, addDays: addDays, parseNepDate: parseNepDate,
     fyNext: fyNext, fyLabel: fyLabel, calcAuthCapital: calcAuthCapital, rollForward: rollForward,
-    Packer: Packer,
+    Packer: Packer, possessive: possessive,
+    // builders shared with the Initial Update module (ocr-initial-core.js)
+    builders: { P: P, heading: heading, subHead: subHead, TC: TC, autoTable: autoTable, AL: AL, F: F },
   };
 });

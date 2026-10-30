@@ -12,7 +12,7 @@
  */
 (function () {
   "use strict";
-  var V = "20261022";
+  var V = "20261030";
 
   // Registry: tool id -> ordered list of scripts to load on first open. The last
   // script in each list registers window.PortalTools[id] = { init }. Dependencies
@@ -27,6 +27,17 @@
       "assets/js/common/psg-bsdate.js",
       "assets/js/ocr-core.js",
       "assets/js/app.js?v=" + V
+    ],
+    "ocr-initial": [
+      "assets/js/docx.min.js",
+      "assets/js/js-yaml.min.js",
+      "assets/js/pizzip.min.js",
+      "assets/js/nepali-date.umd.js",
+      "assets/js/common/psg-num.js",
+      "assets/js/common/psg-bsdate.js",
+      "assets/js/ocr-core.js",
+      "assets/js/ocr-initial-core.js?v=" + V,
+      "assets/js/ocr-initial.js?v=" + V
     ],
     audit: [
       "assets/js/js-yaml.min.js",
@@ -82,12 +93,16 @@
   function qs(s, r) { return (r || document).querySelector(s); }
   function qsa(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 
+  // A shared library listed by two tools (docx, ocr-core, the date helpers) is loaded once.
+  var scriptLoads = {};
   function loadScript(src) {
-    return new Promise(function (resolve, reject) {
+    var key = src.split("?")[0];
+    if (scriptLoads[key]) return scriptLoads[key];
+    return scriptLoads[key] = new Promise(function (resolve, reject) {
       var s = document.createElement("script");
       s.src = src; s.async = false; // keep order
       s.onload = resolve;
-      s.onerror = function () { reject(new Error("Failed to load " + src)); };
+      s.onerror = function () { delete scriptLoads[key]; reject(new Error("Failed to load " + src)); };
       document.body.appendChild(s);
     });
   }

@@ -88,14 +88,17 @@ HTML;
  * Every existing URL serves THIS page; only the default compartment differs.
  */
 function render_portal(array $user, string $default = ''): void {
-    $assets_v = '20261022';
+    $assets_v = '20261030';
     $head = app_header($user);
 
     // OCR Docs
     $ocrCards = tool_card('ocr', '🏢', 'OCR Automation',
         'Office of the Company Registrar filings — AGM/SGM minutes, Section 50/51/92 and Beneficiary Owner detail — as a Word document.');
-    $ocrPanes = tool_pane('ocr', 'Back to OCR Docs', tool_fragment('tool-ocr.html'));
-    $ocr = compartment('ocr-docs', 'OCR Docs', 'OCR Automation',
+    $ocrCards .= tool_card('ocr-initial', '🆕', 'Initial Update',
+        'The first filing after registration — cover letter, first shareholders&rsquo; meeting minutes, auditor appointment minutes and the Section 184 statement — as a Word document.');
+    $ocrPanes = tool_pane('ocr', 'Back to OCR Docs', tool_fragment('tool-ocr.html'))
+      . tool_pane('ocr-initial', 'Back to OCR Docs', tool_fragment('tool-ocr-initial.html'));
+    $ocr = compartment('ocr-docs', 'OCR Docs', 'OCR Docs',
         'Company Registrar compliance documents, generated in your browser.', $ocrCards, $ocrPanes);
 
     // Audit Docs
