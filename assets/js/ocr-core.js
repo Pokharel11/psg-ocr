@@ -69,7 +69,7 @@
   // Possessive of a company name: the one place the "को" is joined to a name, so every
   // document that uses it spaces it the same way. (Initial Update uses it; the older
   // annual set keeps its own wording in data/ocr.yaml.)
-  var POSSESSIVE_SEP = "";
+  var POSSESSIVE_SEP = " ";
   function possessive(name) { return String(name == null ? "" : name).trim() + POSSESSIVE_SEP + "को"; }
 
   // ── date helpers on the shared BS calendar (A4) ──

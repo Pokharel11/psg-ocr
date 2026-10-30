@@ -15,18 +15,18 @@ fs.mkdirSync(OUT, { recursive: true });
 
 function fixture(over) {
   return Object.assign({
-    company: { name: "सन्स्कृत उदाहरण प्रा. लि.", type: "private", regNo: "98765", regDate: "2083/05/05" },
-    address: { district: "कास्की", local: "नमुना नगरपालिका", ward: "7" },
+    company: { name: "हिमाल ट्रेडर्स प्रा.लि.", type: "private", regNo: "123456", regDate: "2083/05/05" },
+    address: { district: "काठमाडौँ", local: "काठमाडौँ महानगरपालिका", ward: "10" },
     phones: ["9800000000", "01-5550000"], fax: "", email: "contact@example.com", ocrOffice: "",
-    founders: [{ name: "काल्पनिक नाम एक" }], chairIndex: 0, signer: {},
-    meeting1: { date: "", time: { part: "बिहान", hour: "11", minute: "" }, no: "" },
-    meeting2: { date: "", time: { part: "दिउँसो", hour: "2", minute: "30" }, no: "" },
+    founders: [{ name: "राम बहादुर थापा" }], chairIndex: 0, signer: {},
+    meeting1: { date: "", time: "", no: "" },
+    meeting2: { date: "", time: "दिउँसो १ बजे", no: "" },
     letterDate: "2083/05/12",
-    auditor: { include: true, name: "सी.ए. नमुना लेखापरीक्षक", fy: "", fee: "" },
+    auditor: { include: true, name: "गौरव पोखरेल", title: "सी.ए.", fy: "२०८३/०८४", fee: "" },
   }, over || {});
 }
-const FOUNDERS3 = [{ name: "काल्पनिक नाम एक" }, { name: "काल्पनिक नाम दुई" }, { name: "काल्पनिक नाम तीन" }];
-const FILES = { cover: "1_Cover_letter", minutes1: "2_Minutes_meeting_1", minutes2: "3_Minutes_auditor_meeting", section184: "4_Section_184_statement" };
+const FOUNDERS3 = [{ name: "राम बहादुर थापा" }, { name: "सीता देवी श्रेष्ठ" }, { name: "हरि प्रसाद अधिकारी" }];
+const FILES = { cover: "1_cover", minutes1: "2_minutes1", minutes2: "3_minutes2", section184: "4_section184" };
 
 (async function () {
   const sets = [
