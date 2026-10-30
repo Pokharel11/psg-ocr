@@ -1,0 +1,93 @@
+<!-- OCR Docs > Initial Update — tool markup (ids/names prefixed oiu-). Logic in
+     assets/js/ocr-initial.js, documents built by assets/js/ocr-initial-core.js from
+     data/ocr.yaml (key "initial"). Rendered inside the OCR Docs compartment.
+     Everything is generated in the browser; nothing is uploaded or stored. -->
+<main style="margin-inline:auto;">
+  <div class="step-panel active">
+    <span class="eyebrow">OCR Docs</span>
+    <h1 class="panel-title">Initial Update</h1>
+    <p class="panel-subtitle" style="font-family:var(--body);">Use this after the company is registered. The set is for the first filing after registration.</p>
+    <div class="banner" id="oiu-verifyBanner" hidden>Wording not yet verified: the corrected spellings and the plural founder wording are draft (<code>verified: false</code> in data/ocr.yaml). Compare one real set with the original before first use.</div>
+    <div class="msgs" id="oiu-globalMsgs"></div>
+
+    <form id="oiu-form" autocomplete="off">
+      <!-- Company -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🏢</span> Company</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Company name <span class="required">*</span><span class="hint nep">प्रा. लि. सहित</span></label><input type="text" class="np" id="oiu-companyName" placeholder="उदाहरण ट्रेडिङ प्रा. लि."></div>
+          <div class="field-group"><label>Company type</label><select id="oiu-companyType"><option value="private" selected>Private limited</option><option value="public" disabled>Public company (later)</option><option value="s166" disabled>Section 166 not-for-profit (later)</option></select></div>
+          <div class="field-group"><label>Registration number <span class="required">*</span><span class="hint nep">दर्ता नं</span></label><input type="text" class="np" id="oiu-regNo" placeholder="१२३४५६"></div>
+          <div class="field-group"><label>Registration date (BS) <span class="required">*</span></label><input type="text" id="oiu-regDate" placeholder="YYYY/MM/DD" inputmode="numeric"></div>
+          <div class="field-group"><label>District <span class="required">*</span><span class="hint nep">जिल्ला</span></label><input type="text" class="np" id="oiu-district" placeholder="काठमाण्डौ"></div>
+          <div class="field-group"><label>Local level <span class="required">*</span><span class="hint nep">स्थानीय तह</span></label><input type="text" class="np" id="oiu-local" placeholder="काठमाण्डौ महानगरपालिका"></div>
+          <div class="field-group"><label>Ward number <span class="required">*</span></label><input type="text" id="oiu-ward" placeholder="१०" inputmode="numeric"></div>
+          <div class="field-group full"><label>Phone numbers <span class="required">*</span> <button type="button" class="btn btn-ghost" id="oiu-addPhone" style="padding:2px 10px;">+ Add</button></label><div id="oiu-phones"></div></div>
+          <div class="field-group"><label>Fax</label><input type="text" class="np" id="oiu-fax" value="छैन"></div>
+          <div class="field-group"><label>Email <span class="hint">Latin letters</span></label><input type="email" id="oiu-email" placeholder="info@example.com"></div>
+          <div class="field-group full"><label>OCR office line</label><input type="text" class="np" id="oiu-ocrOffice"></div>
+        </div>
+      </div>
+
+      <!-- People -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">👥</span> Shareholders and officers</div>
+        <div class="field-grid">
+          <div class="field-group full"><label>Founder shareholders <span class="required">*</span> <button type="button" class="btn btn-ghost" id="oiu-addFounder" style="padding:2px 10px;">+ Add founder</button></label><div id="oiu-founders"></div></div>
+          <div class="field-group"><label>Chairman <span class="hint">default: first shareholder</span></label><select id="oiu-chair"></select></div>
+          <div class="field-group"><label>Signs the letter and statement: name <span class="hint">default: chairman</span></label><input type="text" class="np" id="oiu-signerName"></div>
+          <div class="field-group"><label>Designation</label><input type="text" class="np" id="oiu-signerDesignation" value="अध्यक्ष"></div>
+        </div>
+      </div>
+
+      <!-- Meetings and dates -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">🗓️</span> Meetings and dates</div>
+        <div class="field-grid">
+          <div class="field-group"><label>Meeting 1 date (BS) <span class="hint">blank = registration date</span></label><input type="text" id="oiu-m1Date" placeholder="YYYY/MM/DD" inputmode="numeric"></div>
+          <div class="field-group"><label>Meeting 1 start</label>
+            <div class="radios" style="gap:6px;"><select id="oiu-m1Part"></select><input type="text" id="oiu-m1Hour" placeholder="hour" size="4" inputmode="numeric"><input type="text" id="oiu-m1Min" placeholder="min" size="4" inputmode="numeric"></div></div>
+          <div class="field-group"><label>Meeting 1 number</label><input type="text" id="oiu-m1No" value="01"></div>
+          <div class="field-group"><label>Auditor meeting date (BS) <span class="hint">blank = same as meeting 1</span></label><input type="text" id="oiu-m2Date" placeholder="YYYY/MM/DD" inputmode="numeric"></div>
+          <div class="field-group"><label>Auditor meeting start</label>
+            <div class="radios" style="gap:6px;"><select id="oiu-m2Part"></select><input type="text" id="oiu-m2Hour" placeholder="hour" size="4" inputmode="numeric"><input type="text" id="oiu-m2Min" placeholder="min" size="4" inputmode="numeric"></div></div>
+          <div class="field-group"><label>Auditor meeting number</label><input type="text" id="oiu-m2No" value="02"></div>
+          <div class="field-group"><label>Letter and statement date (BS)</label><input type="text" id="oiu-letterDate" placeholder="YYYY/MM/DD" inputmode="numeric"></div>
+        </div>
+      </div>
+
+      <!-- Auditor -->
+      <div class="section-card">
+        <div class="section-card-title"><span class="icon">✒️</span> Auditor appointment</div>
+        <div class="field-grid">
+          <div class="field-group full"><div class="radios"><label><input type="checkbox" id="oiu-auditInclude" checked> Include the auditor appointment (third document and enclosure 3)</label></div></div>
+          <div id="oiu-auditWrap" class="field-grid full" style="grid-column:1/-1;">
+            <div class="field-group"><label>Auditor</label><select id="oiu-auditorSel"></select></div>
+            <div class="field-group"><label>Auditor name <span class="hint">as printed</span></label><input type="text" class="np" id="oiu-auditorName"></div>
+            <div class="field-group"><label>Financial year <span class="hint">from the registration date; editable</span></label><input type="text" class="np" id="oiu-fy" placeholder="२०८३/८४"></div>
+            <div class="field-group full"><label>Fee wording</label><input type="text" class="np" id="oiu-fee"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msgs" id="oiu-msgs"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="oiu-genCombined">Combined Word file <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-ghost" id="oiu-genZip">Separate files (.zip) <span class="arr">↓</span></button>
+        <button type="button" class="btn btn-ghost" id="oiu-showPreview">Preview</button>
+        <span class="muted">Generated in your browser. Nothing is uploaded.</span>
+      </div>
+      <div class="section-card" style="margin-top:16px;">
+        <div class="section-card-title"><span class="icon">✅</span> After downloading</div>
+        <ol style="margin:0;padding-left:1.2rem;line-height:1.7;">
+          <li>Print the set.</li>
+          <li>Sign the letter, the minutes and the statement.</li>
+          <li>Apply the company seal on the statement.</li>
+          <li>File with the Office of the Company Registrar.</li>
+        </ol>
+        <p class="pdf-note">Need a PDF? Open the downloaded <b>.docx</b> in Word or Google Docs and choose <b>Save as PDF</b>.</p>
+      </div>
+      <div id="oiu-preview" style="margin-top:16px;"></div>
+    </form>
+  </div>
+</main>
